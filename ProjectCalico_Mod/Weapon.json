@@ -1,0 +1,112 @@
+{
+    "weapons": {
+        "Archer Bow": {
+            "parent": "_StandardRangedWeapon",
+            "effectName": "Archer Bow Launch Missile",
+            "stats": {
+                "minimalRange": 0.5,
+                "range": 5
+            }
+        },
+        "Berserker Mace": {
+            "parent": "Legion Sword",
+            "effectName": "Berserker Mace Damage",
+            "stats": {
+                "range": 0.5,
+                "scanRange": 25
+            }
+        },
+        "Blight Ogre Smash": {
+            "parent": "Legion Sword",
+            "effectName": "Blight Ogre Smash Damage",
+            "stats": {
+                "preSwing": 0.5,
+                "backSwing": 0.5,
+                "period": 1,
+                "range": 0.4,
+                "scanRange": 25
+            }
+        },
+        "Bone Archer Bow": {
+            "parent": "_StandardRangedWeapon",
+            "effectName": "Bone Archer Bow Launch Missile",
+            "stats": {
+                "range": 3
+            }
+        },
+        "Bone Warrior Sword": {
+            "parent": "Legion Sword",
+            "effectName": "Bone Warrior Sword Damage",
+            "stats": {
+                "preSwing": 0.25,
+                "backSwing": 0.25,
+                "period": 0.5,
+                "range": 0.5,
+                "scanRange": 25
+            }
+        },
+        "Deathspeaker Deathbolt": {
+            "parent": "_StandardRangedWeapon",
+            "effectName": "Deathbolt Launch Missile",
+            "stats": {
+                "period": 2,
+                "range": 6
+            }
+        },
+        "Footman Sword": {
+            "parent": "Legion Sword",
+            "effectName": "Footman Sword Damage",
+            "stats": {
+                "range": 0.5,
+                "scanRange": 25
+            }
+        },
+        "Legion Sword": {
+            "effectName": "Legion Sword Damage",
+            "stats": {
+                "preSwing": 0.5,
+                "backSwing": 0.5,
+                "period": 1,
+                "range": 0.5,
+                "scanRange": 25
+            },
+            "distanceExtendMode": 1,
+            "targetFilter": {
+                "ground": 1,
+                "invulerable": 2
+            }
+        },
+        "Priest Condemn": {
+            "parent": "Archer Bow",
+            "effectName": "Priest Condemn Launch Missile",
+            "stats": {
+                "range": 6
+            }
+        },
+        "Pyromancer Fireball": {
+            "parent": "_StandardRangedWeapon",
+            "effectName": "Pyromancer Fireball Launch Missile",
+            "stats": {
+                "range": 3
+            }
+        },
+        "Rifleman Rifle": {
+            "parent": "_StandardRangedWeapon",
+            "effectName": "Rifle Damage Set",
+            "stats": {
+                "preSwing": 0.25,
+                "backSwing": 0.75,
+                "minimalRange": 0.5,
+                "range": 1.5
+            }
+        },
+        "Warthog Bite": {
+            "parent": "Legion Sword",
+            "effectName": "Warthog Bite Damage",
+            "stats": {
+                "range": 0.5,
+                "scanRange": 15
+            }
+        }
+    }
+}

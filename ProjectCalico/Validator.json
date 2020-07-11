@@ -1,0 +1,894 @@
+{
+    "validators": {
+        "Can Bleed": {
+            "combine": {
+                "validatorList": [
+                    "TargetUnit Is NotShielded",
+                    "TargetUnit Is Not Stasis And Not Immune"
+                ]
+            }
+        },
+        "CasterUnit Has Ability Ready": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "mana": {}
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 10
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "CasterUnit Less than 10 Energy": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "mana": {}
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 10
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Is A Hero": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Heroic"
+                            }
+                        }
+                    },
+                    "op": 4,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Is Not A Hero": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Heroic"
+                            }
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Not Hit By Heavy Arrow": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Recently Damaged by Heavy Arrow"
+                            }
+                        }
+                    },
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Has RangerAffinityBonus": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 0,
+                                "behavior": "AffinityBonus_Ranger"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Life Above 70%": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "healthFraction": {
+                                "unit": 1
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 0.7
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Life Below 30%": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "healthFraction": {
+                                "unit": 1
+                            }
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 0.3
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Within BerserkerLifeRange": {
+            "negate": false,
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "SourceUnit Life Below 30%",
+                    "SourceUnit Life Above 70%"
+                ]
+            }
+        },
+        "TargetUnit Can Be Disrupted": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "tagCount": {
+                                "unit": 2,
+                                "tagName": "CannotBeDisrupted"
+                            }
+                        }
+                    },
+                    "op": 5,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Cannot Be Disrupted": {
+            "negate": false,
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "TargetUnit Has CannotBeDisrupted Flag",
+                    "TargetUnit Is Spellshielded"
+                ]
+            }
+        },
+        "TargetUnit Has CannotBeDisrupted Flag": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "tagCount": {
+                                "unit": 2,
+                                "tagName": "CannotBeDisrupted"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Armored": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Armored"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Bleed Immune": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Bleed Immunity"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Immune": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Immune"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Armored": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Armored"
+                            }
+                        }
+                    },
+                    "op": 0,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Immune": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Immune"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Poisoned": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Poison"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Spellshielded": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Spellshield"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Stasis And Not Immune": {
+            "combine": {
+                "validatorList": [
+                    "TargetUnit Is Not Stasised",
+                    "TargetUnit Is Not Immune"
+                ]
+            }
+        },
+        "TargetUnit Is Not Stasised": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stasis"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Stealthed": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stealth"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is NotShielded": {
+            "negate": true,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "shield": {
+                                "unit": 2
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Paused": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Paused"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Poison Immune": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Poison Immunity"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Shielded": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "shield": {
+                                "unit": 2
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Spellshielded": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Spellshield"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Stasis Or Immune": {
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "TargetUnit Is Stasised",
+                    "TargetUnit Is Immune"
+                ]
+            }
+        },
+        "TargetUnit Is Stasised": {
+            "negate": false,
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stasis"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Steadfast": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Steadfast"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Stealthed": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stealth"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Structure": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Structure"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Structure OR Armored": {
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "TargetUnit Is Structure",
+                    "TargetUnit Is Armored"
+                ]
+            }
+        },
+        "TargetUnit Is Stunned": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stun"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TestArea": {
+            "negate": false,
+            "unitWithinRange": {}
+        }
+    },
+    "expressions": {
+        "AoE Damage": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Spellshield"
+                            }
+                        }
+                    },
+                    {
+                        "multiply": {
+                            "expressions": [
+                                {
+                                    "value": {
+                                        "constant": {
+                                            "int32Value": -1
+                                        }
+                                    }
+                                },
+                                {
+                                    "value": {
+                                        "damageAmount": {
+                                            "multiplier": 1
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Fire Damage": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Naturalist"
+                            }
+                        }
+                    },
+                    {
+                        "value": {
+                            "damageAmount": {
+                                "multiplier": 0.4
+                            }
+                        }
+                    },
+                    {}
+                ]
+            }
+        },
+        "Nature Damage": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Aqua"
+                            }
+                        }
+                    },
+                    {
+                        "value": {
+                            "damageAmount": {
+                                "multiplier": 0.4
+                            }
+                        }
+                    },
+                    {}
+                ]
+            }
+        },
+        "Water Damage": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Pyro"
+                            }
+                        }
+                    },
+                    {
+                        "value": {
+                            "damageAmount": {
+                                "multiplier": 0.4
+                            }
+                        }
+                    },
+                    {}
+                ]
+            }
+        }
+    },
+    "triggers": {
+        "OnStart": {
+            "event": {
+                "eventName": "TriggerAddTimerEventElapsed"
+            },
+            "parameters": [
+                {
+                    "value": {
+                        "literal": {
+                            "type": 1,
+                            "stringValue": "1"
+                        }
+                    }
+                },
+                {
+                    "value": {
+                        "literal": {
+                            "type": 3,
+                            "stringValue": "true"
+                        }
+                    }
+                }
+            ],
+            "conditions": [
+                {
+                    "variableRef": {
+                        "variableId": "88874d05-b51c-41ad-ae44-b13a131921c5"
+                    }
+                }
+            ],
+            "statements": [
+                {
+                    "functionCall": {
+                        "functionName": "PlayMusic",
+                        "parameters": [
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "Battle2"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    "triggerGlobalVariables": {
+        "TEST_MODE": {
+            "type": 3,
+            "variableType": 0,
+            "name": "TEST_MODE",
+            "instanceId": "88874d05-b51c-41ad-ae44-b13a131921c5",
+            "source": 2,
+            "initialExpression": {
+                "literal": {
+                    "type": 3,
+                    "stringValue": "false"
+                }
+            }
+        }
+    },
+    "triggerCustomFunctions": {
+        "GotoTownHub": {
+            "instanceId": "ded7485c-f141-4fd0-95f0-08a986831ff7",
+            "name": "GotoTownHub",
+            "returnType": 0,
+            "statements": [
+                {
+                    "functionCall": {
+                        "functionName": "PlayLevel",
+                        "parameters": [
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "ProjectCalicoHub"
+                                }
+                            },
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "Hub Area"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

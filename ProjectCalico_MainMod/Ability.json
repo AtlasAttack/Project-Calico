@@ -1,0 +1,216 @@
+{
+    "abilities": {
+        "Bless": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Bless Set",
+            "stats": {
+                "range": 12
+            },
+            "cost": {
+                "mana": 10
+            },
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 5
+                },
+                "player": 0,
+                "ally": 0,
+                "enemy": 2,
+                "neutral": 2,
+                "missile": 2,
+                "structure": 2
+            },
+            "highlight": true,
+            "targetingValidCursorActor": "Heal Target Cursor Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Bomb Brew": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Bomber's Brew Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Deathcall": {
+            "abilityType": 2,
+            "castType": 1,
+            "effect": "Deathcaller Search"
+        },
+        "Deathcall Cast": {
+            "abilityType": 2,
+            "castType": 2,
+            "effect": "_StandardAreaSearch Friendly",
+            "stats": {
+                "period": 10
+            },
+            "canCastWhileMoving": true
+        },
+        "Enrage": {
+            "abilityType": 2,
+            "castType": 1,
+            "effect": "Enrage Set",
+            "stats": {
+                "finishTime": 0
+            },
+            "cost": {
+                "mana": 10
+            },
+            "canCastWhileMoving": true,
+            "commandCardIcon": "icon_enhance_arrowtower_huntersmark"
+        },
+        "Health Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Health Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Heavy Arrow": {
+            "abilityType": 1,
+            "castType": 1,
+            "targetRangeMode": 2,
+            "effect": "Heavy Arrow Launch Missile",
+            "stats": {
+                "range": 10
+            },
+            "cost": {
+                "mana": 10
+            },
+            "description": "Heavy Arrow Target ~~"
+        },
+        "Ignite": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Ignite Spawn Unit",
+            "stats": {
+                "range": 8
+            },
+            "cost": {
+                "mana": 10
+            },
+            "targetingValidCursorActor": "_FX CursorTarget",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Inspire": {
+            "abilityType": 2,
+            "castType": 1,
+            "effect": "Inspire Search Area",
+            "stats": {
+                "finishTime": 0
+            },
+            "cost": {
+                "mana": 10
+            },
+            "canCastWhileMoving": true,
+            "commandCardIcon": "icon_enhance_lighthouse_healingword"
+        },
+        "Legion's Call": {
+            "abilityType": 2,
+            "castType": 1,
+            "effect": "Legion's Call",
+            "stats": {
+                "finishTime": 0
+            },
+            "cost": {
+                "mana": 0
+            },
+            "canCastWhileMoving": true,
+            "abilityTags": [
+                ""
+            ],
+            "commandCardIcon": "icon_enhance_lighthouse_guardian",
+            "commandCardConfirmIcon": "icon_enhance_lighthouse_guardian"
+        },
+        "Refresh Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Refresh Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Scattershot": {
+            "abilityType": 1,
+            "castType": 1,
+            "targetRangeMode": 0,
+            "effect": "Scattershot Search",
+            "stats": {
+                "period": 0.5,
+                "range": 4,
+                "arc": 45
+            },
+            "cost": {
+                "mana": 10
+            },
+            "canCastWhileMoving": false
+        },
+        "Stealth Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Stealth Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Stun Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Stun Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorSTUNPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Warthog Charge": {
+            "abilityType": 2,
+            "castType": 2,
+            "effect": "Warthog Charge Search",
+            "stats": {
+                "prepTime": 0.75,
+                "finishTime": 0.5,
+                "range": 13
+            },
+            "cost": {
+                "mana": 0
+            },
+            "priority": 20,
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 2,
+                    "order": 1
+                },
+                "secondarySortKeys": {
+                    "key": 7
+                },
+                "player": 0,
+                "enemy": 0,
+                "structure": 2,
+                "ground": 1,
+                "invulerable": 2
+            },
+            "chargeIgnoreCooldown": true
+        }
+    }
+}

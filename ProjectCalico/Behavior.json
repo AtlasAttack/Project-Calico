@@ -1,0 +1,781 @@
+{
+    "behaviors": {
+        "AI_OozeSplit": {
+            "periodicInterval": 8,
+            "periodicEffect": "AI_OozeSplit",
+            "periodicEffectCount": 2,
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "AI_WitchHex": {
+            "startEffect": "AI_WitchHex",
+            "periodicInterval": 7.5,
+            "periodicEffect": "AI_WitchHex",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Ability Ready": {
+            "behaviorValidatorsDisable": [
+                "CasterUnit Less than 10 Energy",
+                "Is Not A Hero",
+                "TargetUnit Is Stunned",
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Ablaze": {
+            "alignment": 2,
+            "refreshStack": true,
+            "maxStackCount": 1,
+            "duration": 5.5,
+            "startEffect": "Ablaze DoT",
+            "periodicInterval": 1,
+            "periodicEffect": "Ablaze DoT",
+            "periodicEffectCount": 3,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": -0.5
+                }
+            },
+            "damageResponse": {
+                "fatalOnly": true
+            },
+            "deathResponse": {
+                "chance": 1,
+                "effect": "Ablaze Combust Search",
+                "targetType": 1
+            }
+        },
+        "Absolute Focus": {
+            "maxStackCount": 1,
+            "behaviorValidatorsDisable": [
+                "CasterUnit Life LT 100%"
+            ],
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "AffinityBonus_Armored": {
+            "startEffect": "Armored Affinity Apply Set",
+            "periodicInterval": 6,
+            "periodicEffect": "Apply 1 Block",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "AffinityBonus_Brawler": {
+            "startEffect": "Apply 5 Block"
+        },
+        "AffinityBonus_Holy": {
+            "behaviorValidatorsDisable": [
+                "CasterUnit Has Ability Ready",
+                "Is Not A Hero",
+                "TargetUnit Is Stunned",
+                "TargetUnit Is Paused"
+            ],
+            "modifiers": {
+                "healthRegenerationModifier": {
+                    "scaled": 2
+                }
+            }
+        },
+        "AffinityBonus_Naturalist": {},
+        "AffinityBonus_Ranger": {},
+        "AffinityBonus_Specialist": {},
+        "AffinityBonus_Spellcaster": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0.75
+                }
+            }
+        },
+        "AffinityBonus_Trickster": {
+            "periodicInterval": 10,
+            "periodicEffect": "Apply Trickster AB Stealth",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Alchemist Focus": {
+            "behaviorValidatorsDisable": [
+                "CasterUnit Life LT 100%"
+            ],
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "scaled": 1
+                }
+            }
+        },
+        "Aqua": {},
+        "Armored": {
+            "alignment": 1,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.3
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.3
+                }
+            },
+            "damageResponse": {
+                "chance": 1
+            }
+        },
+        "Assassin Blink Behavior": {
+            "durationRandomAddition": 0.35,
+            "duration": 0.5,
+            "finalEffect": "Assassin Blink Search",
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Stunned"
+            ],
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Assassin Second Blink": {
+            "durationRandomAddition": 0.35,
+            "duration": 1,
+            "finalEffect": "Assassin 2nd Blink Search",
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Stunned"
+            ],
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused",
+                ""
+            ]
+        },
+        "Assassin Sublety": {
+            "duration": 8,
+            "modifiers": {
+                "flags": {
+                    "stealth": true
+                },
+                "moveSpeedModifier": {
+                    "multiplierFactor": -0.5
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Being Ordered": {},
+        "Berserker Rage Passive": {
+            "behaviorValidatorsDisable": [
+                "SourceUnit Within BerserkerLifeRange"
+            ],
+            "modifiers": {
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.5
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.5
+                }
+            }
+        },
+        "Bleed": {
+            "periodicInterval": 1,
+            "behaviorValidatorsApply": [
+                "Can Bleed"
+            ],
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Stasis Or Immune",
+                "TargetUnit Is Bleed Immune"
+            ],
+            "modifiers": {
+                "healthRegenerationModifier": {
+                    "multiplierFactor": -1
+                },
+                "healModifier": {
+                    "multiplierFactor": -1
+                }
+            }
+        },
+        "Bleed Immunity": {},
+        "Blight Cloud": {
+            "periodicInterval": 4,
+            "periodicEffect": "Blight Cloud Search"
+        },
+        "Block": {
+            "maxStackCount": 99,
+            "damageResponse": {
+                "chance": 1,
+                "effect": "Block Expire Set",
+                "damageModifier": {
+                    "multiplierFactor": -1
+                }
+            }
+        },
+        "Bonus Weapon Damage (+100%)": {
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 1
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0
+                }
+            }
+        },
+        "Brawler": {
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.15
+                }
+            }
+        },
+        "Crystal Golem Resilience": {
+            "duration": 8,
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ],
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.9
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.9
+                }
+            },
+            "damageResponse": {
+                "chance": 1,
+                "damageModifier": {
+                    "multiplierFactor": -0.9
+                }
+            }
+        },
+        "Deathcaller AI Behavior": {
+            "periodicInterval": 10,
+            "periodicEffect": "AI_Cast_Deathcall",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Decay DoT Searcher": {
+            "startEffect": "Decay Search Area",
+            "periodicInterval": 1,
+            "periodicEffect": "Decay Search Area",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Difficulty Mod": {
+            "maxStackCount": 100,
+            "startEffect": "Apply 1 Block",
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.03
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.01
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Elite": {
+            "deathResponse": {
+                "chance": 1,
+                "effect": "OnEliteDeath",
+                "targetType": 3
+            }
+        },
+        "Enemy Stat Modifier": {
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Enrage Buff": {
+            "duration": 14,
+            "startEffect": "Recently Inspired (Dummy)",
+            "modifiers": {
+                "maxShieldModifier": {
+                    "unscaled": 55,
+                    "additiveFactor": 0
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.3
+                }
+            }
+        },
+        "Fiery Focus": {
+            "maxStackCount": 1,
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
+        "Fleetfoot": {
+            "maxStackCount": 1,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.3
+                }
+            }
+        },
+        "Giantslayer": {
+            "refreshStack": false,
+            "maxStackCount": 3,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.1
+                }
+            }
+        },
+        "Hasted": {
+            "modifiers": {
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": 0
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": 0
+                }
+            }
+        },
+        "Heavy Arrow Searcher": {
+            "startEffect": "Heavy Arrow Search",
+            "periodicInterval": 0.001,
+            "periodicEffect": "Heavy Arrow Search"
+        },
+        "Herald Enrage": {
+            "maxStackCount": 3,
+            "duration": 30,
+            "modifiers": {
+                "healthRegenerationModifier": {
+                    "scaled": 0.75
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.4
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.4
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.4
+                }
+            }
+        },
+        "Herald On Death": {
+            "deathResponse": {
+                "chance": 1,
+                "effect": "Herald Enrage Search",
+                "targetType": 1
+            }
+        },
+        "Heroic": {
+            "unitModifier": {
+                "targetBehaviorType": 0
+            },
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": -0.25
+                }
+            }
+        },
+        "Holy": {},
+        "Ignite DoT Searcher": {
+            "startEffect": "Ignite Search Area",
+            "periodicInterval": 1,
+            "periodicEffect": "Ignite Search Area"
+        },
+        "Ignore Collision": {
+            "duration": 1.5,
+            "modifiers": {
+                "flags": {
+                    "suppressCollision": true
+                }
+            }
+        },
+        "Immune": {
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressMovement": false,
+                    "suppressWeapon": false,
+                    "suppressAbility": false,
+                    "suppressTurning": false,
+                    "suppressCollision": false
+                }
+            },
+            "behaviorTagArray": [
+                {
+                    "name": "CannotBeDisrupted",
+                    "count": 1
+                }
+            ]
+        },
+        "Improved Armor": {
+            "maxStackCount": 10,
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.05
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.05
+                }
+            }
+        },
+        "Improved Weapons": {
+            "maxStackCount": 10,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Inspire Shield": {
+            "duration": 10,
+            "startEffect": "Recently Inspired (Dummy)",
+            "modifiers": {
+                "maxShieldModifier": {
+                    "unscaled": 0,
+                    "additiveFactor": 0
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.4
+                }
+            }
+        },
+        "Knight Stun": {
+            "duration": 0.5,
+            "startEffect": "Apply Stun",
+            "behaviorValidatorsApply": [
+                "RandomChance 10%"
+            ]
+        },
+        "Last Stand": {
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Level Persist": {},
+        "Melee": {},
+        "Mobile": {},
+        "Naturalist": {},
+        "Pacify Unit": {
+            "modifiers": {
+                "flags": {
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": true,
+                    "suppressCollision": true,
+                    "ignorePathing": true
+                }
+            }
+        },
+        "Paused": {
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": false
+                }
+            }
+        },
+        "Persistence": {
+            "modifiers": {
+                "healthRegenerationModifier": {
+                    "scaled": 1
+                }
+            }
+        },
+        "Poison": {
+            "refreshStack": true,
+            "maxStackCount": 10,
+            "periodicInterval": 1,
+            "periodicEffect": "Poison Damage",
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Stasis Or Immune",
+                "TargetUnit Is Poison Immune"
+            ],
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Poison Immunity": {},
+        "Powercharged": {
+            "maxStackCount": 1,
+            "duration": 3.25,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": 0
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": 0
+                }
+            }
+        },
+        "Protector Shield": {
+            "duration": 10,
+            "modifiers": {
+                "maxShieldModifier": {
+                    "unscaled": 75
+                }
+            }
+        },
+        "Pyro": {},
+        "Quickbrewing": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "scaled": 1
+                }
+            }
+        },
+        "Ranged": {},
+        "Ranger": {
+            "modifiers": {
+                "weaponRangeModifier": {
+                    "multiplierFactor": 2
+                }
+            }
+        },
+        "Recently Damaged by Heavy Arrow": {
+            "duration": 1
+        },
+        "Regrowth Healing": {
+            "duration": 8,
+            "startEffect": "Apply Poison and Bleed Immunity",
+            "periodicInterval": 1,
+            "periodicEffect": "Regrowth Heal (HoT)",
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.25
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.25
+                }
+            }
+        },
+        "Specialist": {
+            "startEffect": "Apply Mobile"
+        },
+        "Spellcaster": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0.25
+                }
+            }
+        },
+        "Spellshield": {
+            "behaviorTagArray": [
+                {
+                    "name": "CannotBeDisrupted",
+                    "count": 1
+                }
+            ]
+        },
+        "Stasis": {
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": true,
+                    "suppressCollision": true
+                }
+            },
+            "behaviorTagArray": [
+                {
+                    "name": "CannotBeDisrupted",
+                    "count": 1
+                }
+            ]
+        },
+        "Steadfast": {},
+        "Stealth": {
+            "duration": 4,
+            "modifiers": {
+                "flags": {
+                    "stealth": true
+                }
+            }
+        },
+        "Structure": {
+            "alignment": 1,
+            "maxStackCount": 1
+        },
+        "Stun": {
+            "duration": 3,
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Steadfast",
+                "TargetUnit Is Stasis Or Immune",
+                "TargetUnit Cannot Be Disrupted"
+            ],
+            "modifiers": {
+                "flags": {
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": true
+                }
+            }
+        },
+        "Taunt": {
+            "periodicInterval": 6,
+            "periodicEffect": "Taunt Search",
+            "behaviorValidatorsApply": [
+                "TargetUnit Is Not Stasis And Not Immune",
+                "TargetUnit Is Not Spellshielded"
+            ],
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Team Discipline": {
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
+        "TestDrawSearcher": {
+            "periodicInterval": 1,
+            "periodicEffect": "TestSearchArea"
+        },
+        "TestPaintUnitRed": {
+            "duration": 1
+        },
+        "Timed Life": {
+            "alignment": 2,
+            "maxStackCount": 1,
+            "periodicInterval": 1.5,
+            "periodicEffect": "Timed Life Damage"
+        },
+        "Timed Life (10)": {
+            "duration": 10,
+            "finalEffect": "Remove Caster",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Timed Life (2)": {
+            "duration": 2,
+            "finalEffect": "Remove Caster",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Timed Life (20)": {
+            "duration": 20,
+            "finalEffect": "Remove Caster",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Trickster": {
+            "startEffect": "Apply Trickster Bonus Damage"
+        },
+        "Trickster Bonus Damage": {
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Not Stealthed"
+            ],
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Unholy Altar Spawning": {
+            "periodicInterval": 10,
+            "periodicEffect": "Unholy Altar Spawn Persistent",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Unholy Altar Spawning -- Deathspeaker": {
+            "periodicInterval": 18,
+            "periodicEffect": "Unholy Altar Spawn Persistent",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Unselectable": {},
+        "Vulnerable": {
+            "refreshStack": true,
+            "maxStackCount": 10,
+            "duration": 8,
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Warthog Charging": {
+            "duration": 4,
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressWeapon": true
+                },
+                "moveSpeedModifier": {
+                    "multiplierFactor": 2
+                }
+            }
+        }
+    }
+}

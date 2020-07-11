@@ -1,0 +1,19 @@
+{
+    "cameraSettings": {
+        "focalPointX": 14.1,
+        "focalPointY": 18.5,
+        "pitchAngleDegree": 50,
+        "allowZoom": false,
+        "allowPanX": false,
+        "allowPanY": false,
+        "panAreaCenterX": 16.1,
+        "panAreaCenterY": 29.1,
+        "panAreaLengthX": -4,
+        "skipIntroSequence": true,
+        "viewMode": 0
+    },
+    "weatherSettings": {
+        "hasVoidStar": true,
+        "weather": 3
+    }
+}

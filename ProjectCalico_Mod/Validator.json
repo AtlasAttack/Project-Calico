@@ -1,0 +1,371 @@
+{
+    "validators": {
+        "CasterUnit Less than 10 Energy": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "mana": {}
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 10
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Is A Hero": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Heroic"
+                            }
+                        }
+                    },
+                    "op": 4,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Is Not A Hero": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Heroic"
+                            }
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Not Hit By Heavy Arrow": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Recently Damaged by Heavy Arrow"
+                            }
+                        }
+                    },
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Life Above 70%": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "healthFraction": {
+                                "unit": 1
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 0.7
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Life Below 30%": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "healthFraction": {
+                                "unit": 1
+                            }
+                        }
+                    },
+                    "op": 3,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "doubleValue": 0.3
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "SourceUnit Within BerserkerLifeRange": {
+            "negate": false,
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "SourceUnit Life Below 30%",
+                    "SourceUnit Life Above 70%"
+                ]
+            }
+        },
+        "TargetUnit Is Armored": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Armored"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Not Armored": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Armored"
+                            }
+                        }
+                    },
+                    "op": 0,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Paused": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Paused"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Steadfast": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Steadfast"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Structure": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Structure"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TargetUnit Is Structure OR Armored": {
+            "combine": {
+                "operation": 1,
+                "validatorList": [
+                    "TargetUnit Is Structure",
+                    "TargetUnit Is Armored"
+                ]
+            }
+        },
+        "TargetUnit Is Stunned": {
+            "expression": {
+                "compare": {
+                    "left": {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Stun"
+                            }
+                        }
+                    },
+                    "op": 2,
+                    "right": {
+                        "value": {
+                            "constant": {
+                                "int32Value": 0
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "triggers": {
+        "OnStart": {
+            "event": {
+                "eventName": "TriggerAddTimerEventElapsed"
+            },
+            "parameters": [
+                {
+                    "value": {
+                        "literal": {
+                            "type": 1,
+                            "stringValue": "1"
+                        }
+                    }
+                },
+                {
+                    "value": {
+                        "literal": {
+                            "type": 3,
+                            "stringValue": "true"
+                        }
+                    }
+                }
+            ],
+            "conditions": [
+                {
+                    "variableRef": {
+                        "variableId": "88874d05-b51c-41ad-ae44-b13a131921c5"
+                    }
+                }
+            ],
+            "statements": [
+                {
+                    "functionCall": {
+                        "functionName": "PlayMusic",
+                        "parameters": [
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "Battle2"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    "triggerGlobalVariables": {
+        "TEST_MODE": {
+            "type": 3,
+            "variableType": 0,
+            "name": "TEST_MODE",
+            "instanceId": "88874d05-b51c-41ad-ae44-b13a131921c5",
+            "source": 2,
+            "initialExpression": {
+                "literal": {
+                    "type": 3,
+                    "stringValue": "false"
+                }
+            }
+        }
+    },
+    "triggerCustomFunctions": {
+        "GotoTownHub": {
+            "instanceId": "ded7485c-f141-4fd0-95f0-08a986831ff7",
+            "name": "GotoTownHub",
+            "returnType": 0,
+            "statements": [
+                {
+                    "functionCall": {
+                        "functionName": "PlayLevel",
+                        "parameters": [
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "ProjectCalicoHub"
+                                }
+                            },
+                            {
+                                "literal": {
+                                    "type": 2,
+                                    "stringValue": "Hub Area"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

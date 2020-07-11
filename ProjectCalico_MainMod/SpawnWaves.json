@@ -1,0 +1,12 @@
+{
+    "cameraSettings": {
+        "focalPointX": 11,
+        "focalPointY": 22,
+        "pitchAngleDegree": 45,
+        "allowZoom": false,
+        "panAreaCenterX": 12,
+        "panAreaCenterY": 20.8,
+        "panAreaLengthX": 17,
+        "skipIntroSequence": true
+    }
+}

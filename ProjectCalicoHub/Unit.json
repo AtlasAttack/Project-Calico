@@ -1,0 +1,67 @@
+{
+    "units": {
+        "NPC1": {},
+        "NPC2": {},
+        "Point_Marker": {},
+        "Prop_Barracks": {
+            "components": {
+                "unit": {
+                    "unitType": 2
+                },
+                "unitStats": {
+                    "radius": 0.125,
+                    "immortal": true,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 1000
+                },
+                "behavior": {
+                    "behaviorType": 4
+                }
+            },
+            "displayName": "data/GameData/unit/_CBuilding/display_name"
+        },
+        "Prop_TownHall": {
+            "components": {
+                "unit": {
+                    "unitType": 2
+                },
+                "unitStats": {
+                    "radius": 0.125,
+                    "immortal": true,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 1000
+                },
+                "behavior": {
+                    "behaviorType": 4
+                }
+            },
+            "displayName": "data/GameData/unit/_CBuilding/display_name"
+        },
+        "StandardChest": {
+            "components": {
+                "unitStats": {
+                    "immortal": true,
+                    "ground": false,
+                    "air": true,
+                    "ignoreCollision": true
+                },
+                "movement": {
+                    "unitHeight": 1
+                },
+                "turning": {
+                    "turningSpeed": 1000
+                }
+            },
+            "references": {
+                "behaviorList": [
+                    "Chest Enter Effect"
+                ]
+            }
+        },
+        "TestBuilding": {}
+    }
+}

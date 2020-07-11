@@ -1,0 +1,911 @@
+{
+    "effects": {
+        "AI_Cast_Deathcall": {
+            "damage": {
+                "whichUnit": 2
+            }
+        },
+        "Ablaze Combust Damage": {
+            "damage": {
+                "damageAmount": 20
+            }
+        },
+        "Ablaze Combust Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.5
+                    }
+                },
+                "filter": {
+                    "ally": 0,
+                    "enemy": 2,
+                    "structure": 0,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Ablaze Combust Damage",
+                "location": 1
+            }
+        },
+        "Ablaze DoT": {
+            "damage": {
+                "damageAmount": 2
+            }
+        },
+        "Apply Stun": {
+            "applyBehavior": {
+                "behavior": "Stun",
+                "target": 1,
+                "stackCount": 1,
+                "duration": 4
+            }
+        },
+        "Archer Bow Apply Vulnerable": {
+            "applyBehavior": {
+                "behavior": "Vulnerable",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Archer Bow Damage": {
+            "damage": {
+                "damageAmount": 9
+            }
+        },
+        "Archer Bow Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Archer Bow Damage",
+                    "Archer Bow Apply Vulnerable"
+                ]
+            }
+        },
+        "Archer Bow Launch Missile": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileUnit": "Arrow Missile",
+                "effect": "Archer Bow Damage",
+                "mover": "Archer Missile Mover"
+            }
+        },
+        "Berserker Mace Damage": {
+            "damage": {
+                "damageAmount": 6
+            }
+        },
+        "Bless Heal": {
+            "heal": {
+                "whichUnit": 1,
+                "valueType": 1,
+                "healAmount": 35
+            }
+        },
+        "Bless Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Bless Heal"
+                ]
+            }
+        },
+        "Blight Cloud Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 0.85
+                    }
+                },
+                "maxUnitCount": 4,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Blighted Ogre Cloud Damage"
+            }
+        },
+        "Blight Ogre Smash Damage": {
+            "damage": {
+                "damageAmount": 1
+            }
+        },
+        "Blighted Ogre Cloud Damage": {
+            "damage": {
+                "damageAmount": 2
+            }
+        },
+        "Bomber's Brew Damage": {
+            "damage": {
+                "damageAmount": 25
+            }
+        },
+        "Bomber's Brew Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.1
+                    }
+                },
+                "maxUnitCount": 10,
+                "filter": {
+                    "player": 2,
+                    "ally": 2,
+                    "enemy": 0,
+                    "structure": 0,
+                    "invulerable": 2,
+                    "alive": 0
+                },
+                "effect": "Bomber's Brew Damage",
+                "location": 2
+            }
+        },
+        "Bone Archer Bow Bonus Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 4
+            }
+        },
+        "Bone Archer Bow Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 2
+            }
+        },
+        "Bone Archer Bow Launch Missile": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileUnit": "Arrow Missile",
+                "effect": "Bone Archer Damage Set",
+                "mover": "Archer Missile Mover"
+            }
+        },
+        "Bone Archer Damage Set": {
+            "persistent": {
+                "periodicCount": 1,
+                "startEffect": "Bone Archer Bow Damage",
+                "periodicDurations": [
+                    0.1
+                ],
+                "periodicEffects": [
+                    "Bone Archer Bow Bonus Damage"
+                ],
+                "periodicValidators": [
+                    "TargetUnit Is Not Armored"
+                ]
+            }
+        },
+        "Bone Warrior Sword Damage": {
+            "damage": {
+                "damageAmount": 2
+            }
+        },
+        "Deathbolt Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 15
+            }
+        },
+        "Deathbolt Launch Missile": {
+            "parent": "Bone Archer Bow Launch Missile",
+            "launchMissile": {
+                "missileUnit": "Deathbolt Missile",
+                "effect": "Deathbolt Damage"
+            }
+        },
+        "Deathcaller Bolt Damage": {
+            "damage": {
+                "damageAmount": 16
+            }
+        },
+        "Deathcaller Impact Persistent": {
+            "persistent": {
+                "periodicCount": 1,
+                "location": 1,
+                "periodicDurations": [
+                    0.1
+                ],
+                "periodicEffects": [
+                    "Deathcaller Bolt Damage"
+                ]
+            }
+        },
+        "Deathcaller Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 20
+                    }
+                },
+                "filter": {
+                    "player": 2,
+                    "ally": 2,
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Deathcaller Impact Persistent",
+                "location": 1
+            }
+        },
+        "Deathknight Lance Bonus Damage": {
+            "damage": {
+                "damageAmount": 4
+            }
+        },
+        "Deathknight Lance Damage": {
+            "damage": {
+                "damageAmount": 6
+            }
+        },
+        "Deathknight Lance Damage Set": {
+            "persistent": {
+                "periodicCount": 1,
+                "startEffect": "Deathknight Lance Damage",
+                "periodicDurations": [
+                    0.1
+                ],
+                "periodicEffects": [
+                    "Deathknight Lance Bonus Damage"
+                ],
+                "periodicValidators": [
+                    "TargetUnit Is Not Armored"
+                ]
+            }
+        },
+        "Enrage Apply Behavior": {
+            "applyBehavior": {
+                "behavior": "Enrage Buff",
+                "target": 3,
+                "stackCount": 1
+            }
+        },
+        "Enrage Impact Dummy": {
+            "damage": {}
+        },
+        "Enrage Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Enrage Apply Behavior",
+                    "Enrage Impact Dummy"
+                ]
+            }
+        },
+        "Footman Sword Damage": {
+            "damage": {
+                "damageAmount": 2
+            }
+        },
+        "Force Attack": {
+            "damage": {
+                "whichUnit": 1
+            }
+        },
+        "Health Potion Heal": {
+            "heal": {
+                "whichUnit": 1,
+                "valueType": 1,
+                "healAmount": 50
+            }
+        },
+        "Health Potion Search": {
+            "areaSearch": {
+                "targetType": 3,
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 0.75
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 8
+                    },
+                    "player": 1,
+                    "ally": 0,
+                    "unit": 1,
+                    "air": 2,
+                    "invulerable": 0,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Health Potion Heal",
+                "location": 2
+            }
+        },
+        "Heavy Arrow Apply Recently Hit": {
+            "applyBehavior": {
+                "behavior": "Recently Damaged by Heavy Arrow",
+                "target": 1
+            }
+        },
+        "Heavy Arrow Bonus Damage": {
+            "damage": {
+                "damageAmount": 40,
+                "expressions": [
+                    {}
+                ]
+            }
+        },
+        "Heavy Arrow Damage": {
+            "damage": {
+                "damageAmount": 40,
+                "expressions": [
+                    {}
+                ]
+            }
+        },
+        "Heavy Arrow Damage Set": {
+            "persistent": {
+                "periodicCount": 1,
+                "startEffect": "Heavy Arrow Damage",
+                "periodicDurations": [
+                    0.01
+                ],
+                "periodicEffects": [
+                    "Heavy Arrow Bonus Damage"
+                ],
+                "periodicValidators": [
+                    "TargetUnit Is Structure"
+                ]
+            }
+        },
+        "Heavy Arrow Destory Missile": {
+            "remove": {
+                "whichUnit": 3
+            }
+        },
+        "Heavy Arrow Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Heavy Arrow Damage Set",
+                    "Heavy Arrow Apply Recently Hit",
+                    "Heavy Arrow Destory Missile"
+                ]
+            }
+        },
+        "Heavy Arrow Launch Missile": {
+            "launchMissile": {
+                "targetType": 2,
+                "missileUnit": "Heavy Arrow Missile",
+                "launchLocation": 7,
+                "impactLocation": 2,
+                "mover": "Heavy Arrow Mover"
+            }
+        },
+        "Heavy Arrow Pushback": {
+            "launchMissile": {
+                "launchLocation": 1,
+                "impactLocation": 2
+            }
+        },
+        "Heavy Arrow Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circleSector": {
+                        "outerRadius": 2,
+                        "innerRadius": 0.8,
+                        "angle": 19
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1
+                },
+                "validators": [
+                    "Not Hit By Heavy Arrow"
+                ],
+                "effect": "Heavy Arrow Impact Set"
+            }
+        },
+        "Ignite DOT Damage": {
+            "damage": {
+                "damageAmount": 2.5
+            }
+        },
+        "Ignite Search Area": {
+            "parent": "_StandardAreaSearch",
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1
+                    }
+                },
+                "effect": "Ignite DOT Damage"
+            }
+        },
+        "Ignite Spawn Unit": {
+            "spawn": {
+                "unit": "Ignite Dummy Unit",
+                "count": 1,
+                "owner": 3,
+                "location": 2
+            }
+        },
+        "Inspire": {
+            "applyBehavior": {
+                "behavior": "Inspire Shield",
+                "target": 1
+            }
+        },
+        "Inspire Search Area": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 2.7
+                    }
+                },
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 0
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Inspire",
+                "location": 6
+            }
+        },
+        "Legion Sword Damage": {
+            "damage": {
+                "damageAmount": 3
+            }
+        },
+        "Legion's Call": {
+            "spawn": {
+                "unit": "Footman",
+                "count": 1,
+                "owner": 2,
+                "location": 4,
+                "offsetStart": 4,
+                "offsetEnd": 4,
+                "offset": {
+                    "forward": -0.5
+                },
+                "effect": "Timed Life Apply Behavior"
+            }
+        },
+        "Move": {
+            "teleportAlongWaypoint": {}
+        },
+        "OnEliteDeath": {
+            "damage": {}
+        },
+        "Priest Condemn Damage": {
+            "damage": {
+                "damageAmount": 3
+            }
+        },
+        "Priest Condemn Launch Missile": {
+            "launchMissile": {
+                "missileUnit": "Priest Condemn Missile",
+                "effect": "Priest Condemn Damage",
+                "mover": "Heavy Arrow Mover"
+            }
+        },
+        "Pyromancer Apply Ablaze": {
+            "applyBehavior": {
+                "behavior": "Ablaze",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Pyromancer Fireball Damage": {
+            "damage": {
+                "damageAmount": 4
+            }
+        },
+        "Pyromancer Fireball Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Pyromancer Apply Ablaze",
+                    "Pyromancer Fireball Damage"
+                ]
+            }
+        },
+        "Pyromancer Fireball Launch Missile": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileUnit": "Fireball Missile",
+                "effect": "Pyromancer Fireball Impact Set",
+                "launchLocation": 7,
+                "impactLocation": 1,
+                "mover": "Heavy Arrow Mover"
+            }
+        },
+        "Recently Inspired (Dummy)": {
+            "damage": {}
+        },
+        "Refresh Potion Search": {
+            "areaSearch": {
+                "targetType": 3,
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 0.55
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 7
+                    },
+                    "secondarySortKeys": {
+                        "key": 6
+                    },
+                    "player": 1,
+                    "ally": 0,
+                    "unit": 1,
+                    "air": 2,
+                    "invulerable": 0,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Restore Energy",
+                "location": 2
+            }
+        },
+        "Remove Unit": {
+            "kill": {}
+        },
+        "Restore Energy": {
+            "modifyUnit": {
+                "whichUnit": 1,
+                "modifyMana": {
+                    "valueType": 1,
+                    "amount": 10
+                }
+            }
+        },
+        "Rifle Armored Bonus Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 5
+            }
+        },
+        "Rifle Damage Set": {
+            "persistent": {
+                "periodicCount": 1,
+                "startEffect": "Rifle Main Damage",
+                "periodicDurations": [
+                    0.01
+                ],
+                "periodicEffects": [
+                    "Rifle Armored Bonus Damage"
+                ],
+                "periodicValidators": [
+                    "TargetUnit Is Armored"
+                ]
+            }
+        },
+        "Rifle Main Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 6
+            }
+        },
+        "Scattershot Apply Stun": {
+            "applyBehavior": {
+                "behavior": "Stun",
+                "target": 1,
+                "stackCount": 1,
+                "duration": 2
+            }
+        },
+        "Scattershot Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 30
+            }
+        },
+        "Scattershot Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Scattershot Apply Stun",
+                    "Scattershot Damage"
+                ]
+            }
+        },
+        "Scattershot Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circleSector": {
+                        "outerRadius": 2.4,
+                        "innerRadius": 0.25,
+                        "angle": 65
+                    }
+                },
+                "filter": {
+                    "enemy": 1,
+                    "invulerable": 2
+                },
+                "effect": "Scattershot Impact Set",
+                "location": 5,
+                "useSourceFacing": false
+            }
+        },
+        "Scattershot Source Effect": {
+            "persistent": {}
+        },
+        "Spawn Blight Ogre": {
+            "spawnTroop": {
+                "unit": "Blight Ogre",
+                "spawnCount": 1
+            }
+        },
+        "Spawn Bone Archer": {
+            "spawnTroop": {
+                "unit": "Bone Archer",
+                "spawnCount": 1
+            }
+        },
+        "Spawn Bone Warrior": {
+            "spawnTroop": {
+                "unit": "Bone Warrior",
+                "spawnCount": 1
+            }
+        },
+        "Spawn Warthog": {
+            "spawnTroop": {
+                "unit": "Warthog",
+                "spawnCount": 1
+            }
+        },
+        "Stealth Potion Apply Stealth": {
+            "applyBehavior": {
+                "behavior": "Stealth",
+                "stackCount": 1,
+                "duration": 3
+            }
+        },
+        "Stealth Potion Search": {
+            "areaSearch": {
+                "targetType": 3,
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 0.75
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "player": 1,
+                    "ally": 0,
+                    "unit": 1,
+                    "structure": 2,
+                    "air": 2,
+                    "stealth": 2,
+                    "invulerable": 0,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Stealth Potion Apply Stealth",
+                "location": 1
+            }
+        },
+        "Stun Potion Search": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1
+                    }
+                },
+                "maxUnitCount": 10,
+                "filter": {
+                    "player": 2,
+                    "ally": 2,
+                    "enemy": 0,
+                    "structure": 0,
+                    "invulerable": 2,
+                    "alive": 0
+                },
+                "effect": "Apply Stun",
+                "location": 2
+            }
+        },
+        "TestMoverUnit": {
+            "launchMissile": {}
+        },
+        "Timed Life Apply Behavior": {
+            "applyBehavior": {
+                "behavior": "Timed Life",
+                "target": 1
+            }
+        },
+        "Timed Life Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 1
+            }
+        },
+        "Unholy Altar Spawn Persistent": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    0.5
+                ],
+                "periodicEffectSelectMode": 1,
+                "periodicEffects": [
+                    "Spawn Bone Warrior",
+                    "Spawn Warthog",
+                    "Spawn Bone Archer",
+                    "Spawn Bone Warrior",
+                    "Spawn Bone Warrior"
+                ],
+                "periodicOffsetSelectMode": 1
+            }
+        },
+        "Warhog Charge Apply Stun": {
+            "applyBehavior": {
+                "behavior": "Stun",
+                "target": 1,
+                "duration": 4
+            }
+        },
+        "Warhog Charge Mover": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileDeathType": 1,
+                "effect": "Warthog Charge Impact (Dummy)",
+                "launchLocation": 7,
+                "impactLocation": 1,
+                "mover": "Heavy Arrow Mover"
+            }
+        },
+        "Warthog Bite Damage": {
+            "damage": {
+                "damageAmount": 8
+            }
+        },
+        "Warthog Charge Impact (Dummy)": {
+            "damage": {}
+        },
+        "Warthog Charge Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 13
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 5
+                    },
+                    "enemy": 1,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Warthog Charge Set"
+            }
+        },
+        "Warthog Charge Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Warhog Charge Mover",
+                    "Warhog Charge Apply Stun"
+                ]
+            }
+        },
+        "[Sound] Battle Start": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    10
+                ],
+                "periodicEffects": [
+                    "DoNothing"
+                ],
+                "terminateOnPeriodicEffectSuccess": true
+            }
+        },
+        "[Sound] Battle Won": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    10
+                ],
+                "periodicEffects": [
+                    "DoNothing"
+                ],
+                "terminateOnPeriodicEffectSuccess": true
+            }
+        },
+        "[Sound] Gold Collect": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    10
+                ],
+                "periodicEffects": [
+                    "DoNothing"
+                ],
+                "terminateOnPeriodicEffectSuccess": true
+            }
+        },
+        "[Sound] Perk Earned": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    10
+                ],
+                "periodicEffects": [
+                    "DoNothing"
+                ],
+                "terminateOnPeriodicEffectSuccess": true
+            }
+        },
+        "[Sound] Run Succeeded": {
+            "persistent": {
+                "periodicCount": 1,
+                "periodicDurations": [
+                    10
+                ],
+                "periodicEffects": [
+                    "DoNothing"
+                ],
+                "terminateOnPeriodicEffectSuccess": true
+            }
+        }
+    }
+}

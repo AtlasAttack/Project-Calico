@@ -1,0 +1,38 @@
+{
+    "settings": {
+        "dependencies": [
+            "Arcade/Core",
+            "ProjectCalico_MainMod"
+        ],
+        "transitionMaps": [
+            "ProjectCalico"
+        ]
+    },
+    "musicSettings": {
+        "musicNames": [
+            "Hometown1"
+        ]
+    },
+    "triggerSettings": {
+        "usedAtlasAssets": [
+            "gradientBG",
+            "Other",
+            "ItemAtlas00",
+            "TournamentAtlas",
+            "Assets/Bundles/UI/Atlas/WildCastle01.spriteatlas",
+            "CardInfo00",
+            "gradientBGOvalMasked"
+        ],
+        "usedSpriteAssets": [
+            "gold_chest_open",
+            "crown_gold",
+            "elemental_trial_fire",
+            "elemental_trial_dark",
+            "hero_chest_t1",
+            "hero_chest_t2",
+            "hero_chest_t3",
+            "physic_chest",
+            "hero_chest_t3"
+        ]
+    }
+}

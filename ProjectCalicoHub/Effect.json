@@ -1,0 +1,24 @@
+{
+    "effects": {
+        "Chest Appear": {
+            "launchMissile": {
+                "missileDeathType": 1,
+                "launchLocation": 4,
+                "impactLocation": 5,
+                "offsetStart": 5,
+                "offsetEnd": 5,
+                "launchOffset": {
+                    "up": 5
+                },
+                "impactOffset": {
+                    "up": 0
+                },
+                "useMissileHeightAtDestination": true,
+                "mover": "Slow Missile Mover"
+            }
+        },
+        "ChestAppearImpact": {
+            "damage": {}
+        }
+    }
+}

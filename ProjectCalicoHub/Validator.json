@@ -1,0 +1,27 @@
+{
+    "triggers": {
+        "OnStart": {
+            "event": {
+                "eventName": "TriggerAddTimerEventElapsed"
+            },
+            "parameters": [
+                {
+                    "value": {
+                        "literal": {
+                            "type": 1,
+                            "stringValue": "1"
+                        }
+                    }
+                },
+                {
+                    "value": {
+                        "literal": {
+                            "type": 3,
+                            "stringValue": "true"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

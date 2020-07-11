@@ -1,0 +1,11 @@
+{
+    "movers": {
+        "Slow Missile Mover": {
+            "ballistic": {
+                "flightTime": 0.3,
+                "speed": 0,
+                "gravity": 0
+            }
+        }
+    }
+}

@@ -1,0 +1,564 @@
+{
+    "actors": {
+        "Chest Appear Action Actor": {
+            "actionActor": {
+                "effect": "Chest Appear",
+                "launchModelDetached": true,
+                "impactModel": "Chest Appear Impact Model",
+                "impactModelDetached": true
+            }
+        },
+        "Chest Appear Impact Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_chosen_blindingflash_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "Chest Appear SOp"
+                ],
+                "modelScale": 2
+            }
+        },
+        "Chest Appear SOp": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0
+                }
+            }
+        },
+        "ChestAppearImpact Action Actor": {
+            "actionActor": {
+                "effect": "ChestAppearImpact",
+                "launchModel": "ChestAppearImpact Launch Model",
+                "launchModelDetached": true,
+                "impactModel": "ChestAppearImpact Impact Model",
+                "impactModelDetached": true
+            }
+        },
+        "ChestAppearImpact Impact Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_chosen_blindingflash_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "ChestAppearImpact SOp"
+                ],
+                "modelScale": 2
+            }
+        },
+        "ChestAppearImpact Launch Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "awaken_sucessed"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "ChestAppearImpact SOp"
+                ]
+            }
+        },
+        "ChestAppearImpact SOp": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0
+                }
+            }
+        },
+        "NPC1": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "villager_male_01"
+                }
+            }
+        },
+        "NPC2": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "village_female_01"
+                }
+            }
+        },
+        "Point_Marker": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "prop_flag_alliance"
+                },
+                "modelScale": 0.01
+            }
+        },
+        "Prop_Barracks": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "barracks_rank01"
+                },
+                "eventMacros": [
+                    "[Select Effect]"
+                ],
+                "modelScale": 2
+            }
+        },
+        "Prop_TownHall": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "hunterhut_tower_rank1"
+                },
+                "eventMacros": [
+                    "[Select Effect]"
+                ],
+                "modelScale": 1.55
+            }
+        },
+        "SOp Rotate 359": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0,
+                    "dy": 180,
+                    "orientation": 1
+                }
+            }
+        },
+        "SOp Rotate Overtime": {
+            "siteOperation": {
+                "rotate": {
+                    "dy": 80,
+                    "orientation": 1
+                }
+            }
+        },
+        "StandardChest": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "chest_golden"
+                },
+                "eventMacros": [
+                    "[Chest Actor]"
+                ],
+                "modelScale": 1.5
+            }
+        },
+        "TestBuilding": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "arrowtower_rank02"
+                },
+                "modelScale": 1.5
+            }
+        },
+        "ChestOpeningFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_chosen_weapon_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "FailsafeRemove",
+                                    "duration": 5
+                                }
+                            },
+                            {
+                                "create": {
+                                    "actor": "ChestOpeningSFX"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "FailsafeRemove"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2.75
+            }
+        },
+        "ChestOpeningSFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "chest_open"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        },
+        "ChestOpeningInstantSFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "tower_lighthouse_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        },
+        "ChestOpeningSFX 2": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "zombie_mutant_explode"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        }
+    },
+    "actorEventMacros": {
+        "[Chest Actor]": {
+            "events": [
+                {
+                    "actorTerm": {
+                        "actorCreate": {}
+                    },
+                    "actions": [
+                        {
+                            "createTimer": {
+                                "name": "rotator",
+                                "duration": 1,
+                                "repeat": true
+                            }
+                        },
+                        {
+                            "setSiteOperations": {
+                                "siteOperations": [
+                                    "SOp Rotate Overtime"
+                                ],
+                                "duration": 0,
+                                "append": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "selectionOn": {}
+                    },
+                    "actions": [
+                        {
+                            "shakeCamera": {
+                                "value": 2
+                            }
+                        },
+                        {
+                            "playAnimationWithDuration": {
+                                "clipId": 4,
+                                "clipDuration": 1
+                            }
+                        },
+                        {
+                            "setSiteOperations": {
+                                "siteOperations": [
+                                    "SOp FaceNorth"
+                                ],
+                                "duration": 0.25
+                            }
+                        },
+                        {
+                            "createTimer": {
+                                "name": "openFX",
+                                "duration": 0.75,
+                                "repeat": false
+                            }
+                        },
+                        {
+                            "create": {
+                                "actor": "ChestOpeningInstantSFX"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "animationFinish": {
+                            "clip": 4
+                        }
+                    },
+                    "actions": [
+                        {
+                            "playAnimationWithDuration": {
+                                "clipId": 7,
+                                "clipDuration": 500
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "onTimer": {
+                            "name": "openFX"
+                        }
+                    },
+                    "actions": [
+                        {
+                            "create": {
+                                "actor": "ChestOpeningFX"
+                            }
+                        },
+                        {
+                            "create": {
+                                "actor": "ChestOpeningSFX 2"
+                            }
+                        },
+                        {
+                            "shakeCamera": {
+                                "value": 5
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "[Select Effect]": {
+            "events": [
+                {
+                    "actorTerm": {
+                        "actorCreate": {}
+                    },
+                    "actions": [
+                        {
+                            "applyMeshEffect": {
+                                "effect": "Overcharge"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "actorDestroy": {}
+                    },
+                    "actions": [
+                        {
+                            "removeMeshEffect": {
+                                "effect": "Overcharge"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

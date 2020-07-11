@@ -1,0 +1,1446 @@
+local json = require "json"
+
+local CalicoCore = GameModules["ProjectCalico_MainMod"]
+
+function GetTableSize(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+  end
+
+function foreach(collection, callback)
+    for index=1,GetTableSize(collection) do
+        callback(collection[index])
+    end
+end
+
+function TableContains(table, element)
+    if(table == nil) then 
+        return false 
+    end
+    for index = 1, GetTableSize(table) do
+        if(table[index] == element) then return true end
+    end
+    return false
+end
+
+function HeroType(heroName, heroTrait, heroAbility, heroIcon)
+    return {name = heroName, description = "Trait: "..heroTrait.."\n\nSpecial Ability: "..heroAbility, image = heroIcon}
+end
+
+function ChestType(chestName, chestUnitLink, chestIconLink, chestContainsDesc, chestUnlockTimeSeconds)
+    return {name = chestName, unitLink = chestUnitLink, iconLink = chestIconLink, description = chestContainsDesc, unlockTime = chestUnlockTimeSeconds}
+end
+
+function DefineChestTypes()
+    local chestList = {
+        ChestType("Standard Chest","StandardChest","hero_chest_t1","Contains gold and at least 2 Hero Shards, has a low chance to contain relics and bonus shards.",1800),
+        ChestType("Conquest Chest","StandardChest","hero_chest_t2","Contains gold and at least 4 Hero Shards, has a moderate chance to contain a relic.",3600),
+        ChestType("Heroic Chest","StandardChest","hero_chest_t3","Contains gold and at least 6 Hero Shards, has a moderate chance to contain relics and bonus shards.",7200),
+        ChestType("Boss Chest","StandardChest","physic_chest","Contains gold and at least 9 Hero Shards, as well as an epic relic.",14400),
+    }
+    return chestList
+end
+
+function Zone(zoneName, zoneDescription,zoneSplash, zoneTwist, zoneMap, zonePrerequisiteZone,zoneFlags)
+    return {name = zoneName, description = zoneDescription, image = zoneSplash, twist = zoneTwist,map = zoneMap, requirementZone = zonePrerequisiteZone, flags = zoneFlags}
+end
+
+function DefineZones()
+    local zoneList = {}
+    table.insert(zoneList, Zone("Training Grounds","Instructor Price will take you through the basics of adventuring.","elemental_trial_light","None","UnknownMap",nil,{isTutorial = true}))
+    table.insert(zoneList, Zone("Haunted Forest","Undead soldiers and dark spellcasters roam these cursed woods.","elemental_trial_dark","<color=yellow>Restless Dead</color>\n\nSuccessfully channeled abilities spawn hostile undead that attack your heroes.","ProjectCalico","Training Grounds",nil))
+    return zoneList
+end
+
+function GetDifficultyIntFromMode(modeName)
+    if(modeName == "Standard") then return 1 end
+    if(modeName == "Conquest") then return 2 end
+    if(modeName == "Boss") then return 3 end
+    return -1
+end
+
+function SaveChestData(data, index)
+    local data = json.encode(data)
+    DCEI.Save.Set("ChestData_"..index, data )
+    DCEI.LogMessage("Saving chest data:"..data)
+    DCEI.Save.Commit()
+end
+
+function LoadChestData()
+    local retrievedData = DCEI.Save.Get("ChestData")
+    if(retrievedData == nil) then return nil end
+    local data = json.decode(retrievedData)
+    return data
+end
+
+
+local HERO_TYPES = {
+    HeroType("Legionnaire","Periodically spawns footmen to fight alongside him.","Grant all allies a shield and tempoararily increase their attack speed.","icon_spell_bolster"),
+    HeroType("Priest","None","Heal a target friendly unit.","icon_spell_holy_nova"),
+    HeroType("Assassin","If no heroes are adjacent to this one at the start of combat, the Assassin teleports to the furthest enemy and deals 60 damage.","The Assassin becomes stealthed for 6 seconds and gains +50% damage dealt, and -80% movement speed.","icon_ingame_hero_lava_chef"),
+    HeroType("Alchemist","While at full health, the Alchemist always generates Team XP and her ability recharges twice as fast.","Channel for 2 seconds and brew a random potion.","icon_ingame_hero_crazy_alchemsit"),
+    HeroType("Rifleman","The Rifleman's attacks deal large bonus damage to armored targets.","Deal moderate damage to all targets in front of the Rifleman, and stun them temporarily.","icon_ingame_towerslot_huntershut"),
+    HeroType("Berserker","When between 30 and 70% health, the Berserker gains 50% attack speed, and takes 50% less damage.","The Berserker gains a large shield and increases his attack speed.","icon_enhance_flamecannon_furnace"),
+    HeroType("Archer","Enemies hit by the Archer take additional damage from all sources. (Stacks up to 8 times).","Fire an arrow in a target direction which deals heavy damage to the first target hit. (Bonus damage to structures).","icon_ingame_towerslot_arrowtower"),
+    HeroType("Pyromancer","The Pyromancer's attacks mark a target. If a marked target dies, it explodes and deals damage to all nearby enemies.","Ignite a target location. Enemies at that location take continuous damage over time.","icon_spell_fireball")
+ }
+
+
+local conversationStart = {
+    "Merek",
+    "Hey... you! Mind helping us out?",
+    "Our outpost here won't last very long if we don't find some supplies!",
+    "And some help for that matter..",
+    "I'd go myself, but there are dangerous creatures out there!",
+    "However...",
+    "If you could find a brave set of adventurers...",
+    "I'm certain we can build this outpost up to something great!",
+    "I'll be making preparations here. When ready, embark on your first mission!",
+    callback = function()
+        DCEI.LogMessage("On Convo done called!")
+        CreateEmbarkPanel()
+    end
+}
+
+local currentConversation = nil
+local currentConversationStage = 1
+local convoState = {0,0,0,0,0,0,0,0,0,0}
+local playerGold = 0
+local playerRubies = 0
+local playerLevel = 0--Not hooked up to saved values at the moment.
+local playerXP = 0--Not hooked up to saved values at the moment.
+local retrievedGold = DCEI.Save.Get("PlayerGold") 
+local retrievedRubies = DCEI.Save.Get("PlayerRubies") 
+local gainedGold = DCEI.Save.Get("EarnedGold")
+local missionsPlayed = DCEI.Save.Get("MissionsPlayed")
+local missionsCompleted = DCEI.Save.Get("MissionsCompleted")
+if(missionsCompleted == nil) then
+    missionsCompleted = 0
+end
+if(missionsPlayed == nil) then
+    missionsPlayed = 0
+end
+local allChests = DefineChestTypes()
+local allZones = DefineZones()
+local chestData = LoadChestData()
+if(chestData == nil) then
+    chestData = {}
+    for index=1,6 do
+        chestData[index] = {}
+        chestData[index].chestInSlot = 0
+        chestData[index].unlockTime = 0
+        if(index >= 5) then
+            chestData[index].chestInSlot = -1
+        end
+        SaveChestData(chestData[index],index)
+    end
+    
+end
+
+local shouldSave = false
+--LoadZoneDifficultyProgress()
+foreach(allZones, function(zone) 
+    zone.currentDifficulty = {}
+    local standardProgress = DCEI.Save.Get(zone.name.."_StandardDiff")
+    if(standardProgress == nil) then
+        DCEI.LogMessage("Got nil standard progress! Resetting progress!")
+        standardProgress = 1
+        shouldSave = true
+    end
+    zone.currentDifficulty[1] = standardProgress
+    local conquestProgress = DCEI.Save.Get(zone.name.."_ConquestDiff")
+    if(conquestProgress == nil) then
+        DCEI.LogMessage("Got nil conquest progress! Resetting progress!")
+        conquestProgress = 1
+        shouldSave = true
+    end
+    zone.currentDifficulty[2] = conquestProgress
+    local bossProgress = DCEI.Save.Get(zone.name.."_BossDiff")
+    if(bossProgress == nil) then
+        DCEI.LogMessage("Got nil boss progress! Resetting progress!")
+        bossProgress = 1
+        shouldSave = true
+    end
+    zone.currentDifficulty[3] = bossProgress
+    DCEI.LogMessage("Finished retriving saved difficulty values!\nDifficulty numbers: "..zone.currentDifficulty[1]..","..zone.currentDifficulty[2]..","..zone.currentDifficulty[3]..")")
+    if(shouldSave == true) then
+        DCEI.Save.Set(zone.name.."_StandardDiff",standardProgress)
+        DCEI.Save.Set(zone.name.."_ConquestDiff",conquestProgress)
+        DCEI.Save.Set(zone.name.."_BossDiff",bossProgress)
+    end
+    
+end)
+if(shouldSave == true) then
+    DCEI.LogMessage("Saving new difficulty values!")
+    DCEI.Save.Commit()
+end
+
+if(retrievedGold ~= nil) then
+    playerGold = retrievedGold
+end
+if(retrievedRubies ~= nil) then
+    playerRubies = retrievedRubies
+    
+end
+DCEI.SetGold(playerGold)
+
+-- VARIABLES
+local core = GameModules["Arcade/Core"]
+
+local root = DCEI.GetUiRoot()
+
+local expeditionNPC = DCEI.FindUnit("NPC1")
+DCEI.SetTooltipBackgroundImage("frame_inner_blue")
+local MAIN_UI = {frame = nil}
+MAIN_UI.selectedModeType = "Standard"
+MAIN_UI.selectedZone = 2
+
+-- TRIGGERS
+
+function OnMapStart()
+    core.HideDefaultUi()
+    DCEI.PlayMusic("Hometown1")
+    
+    --DCEI.ShowSystemUi(1)
+end
+
+function InitializePersistentData()
+    if(gainedGold ~= nil) then
+        playerGold = playerGold + gainedGold
+        DCEI.AddGold(gainedGold)
+        DCEI.ShowMessageWithButtonText("Gold earned!","Your last mission earned you <color=yellow>"..(gainedGold).." gold</color>!","Accept")
+        local lastDungeonData = json.decode(DCEI.Save.Get("DungeonData"))
+        --local lastZoneName = lastDungeonData.zoneName
+        
+            local lastZone = allZones[lastDungeonData.zone]
+            local completedDifficulty = lastDungeonData.difficulty
+            local completedMode = lastDungeonData.type
+            DCEI.Save.Set((lastZone.name).."_"..completedMode.."Diff",completedDifficulty+1)
+            lastZone.currentDifficulty[GetDifficultyIntFromMode(completedMode)] = completedDifficulty+1
+            MAIN_UI.UpdateDifficulty()
+        
+        
+        DCEI.Save.Set("PlayerGold",playerGold)
+        DCEI.Save.Set("EarnedGold",nil)
+        DCEI.Save.Set("MissionsPlayed",missionsPlayed + 1)
+        DCEI.Save.Set("MissionsCompleted",missionsCompleted + 1)
+        DCEI.Save.Commit()
+    elseif(DCEI.Save.Get("LastOutcome") ~= nil) then
+        if(DCEI.Save.Get("LastOutcome") == "Defeat") then
+            DCEI.ShowMessageWithButtonText("Defeated!","Your party was killed during your last mission. As a result you didn't earn any gold.","Damn")
+            DCEI.Save.Set("LastOutcome",nil)
+            DCEI.Save.Set("MissionsPlayed",missionsPlayed + 1)
+            DCEI.Save.Commit()
+        end
+    elseif(missionsPlayed <= 0) then
+        DCEI.Save.Set("MissionsPlayed",missionsPlayed)
+        DCEI.Save.Set("MissionsCompleted",missionsCompleted)
+    end
+end
+
+
+
+function GetChestRewardFromMode(modeName)
+    local difficultyLevel = GetCurrentDifficultyFromMode(modeName)
+    if(modeName == "Standard" and difficultyLevel <= 5) then 
+        return allChests[1]
+    elseif(modeName == "Standard") then
+        return allChests[3]
+    end
+    if(modeName == "Conquest") then return allChests[2] end
+    if(modeName == "Boss") then return allChests[4] end
+    return nil
+end
+
+function LoadZoneDifficultyProgress()
+    foreach(allZones, function(zone) 
+        zone.currentDifficulty = {}
+        local standardProgress = DCEI.Save.Get(zone.name.."_StandardDiff")
+        if(standardProgress == nil) then
+            DCEI.LogMessage("Got nil standard progress! Resetting progress!")
+            standardProgress = 1
+            shouldSave = true
+        end
+        zone.currentDifficulty[1] = standardProgress
+        local conquestProgress = DCEI.Save.Get(zone.name.."_ConquestDiff")
+        if(conquestProgress == nil) then
+            DCEI.LogMessage("Got nil conquest progress! Resetting progress!")
+            conquestProgress = 1
+            shouldSave = true
+        end
+        zone.currentDifficulty[2] = conquestProgress
+        local bossProgress = DCEI.Save.Get(zone.name.."_BossDiff")
+        if(bossProgress == nil) then
+            DCEI.LogMessage("Got nil boss progress! Resetting progress!")
+            bossProgress = 1
+            shouldSave = true
+        end
+        zone.currentDifficulty[3] = bossProgress
+        DCEI.LogMessage("Finished retriving saved difficulty values!\nDifficulty numbers: "..zone.currentDifficulty[1]..","..zone.currentDifficulty[2]..","..zone.currentDifficulty[3]..")")
+        if(shouldSave == true) then
+            DCEI.Save.Set(zone.name.."_StandardDiff",standardProgress)
+            DCEI.Save.Set(zone.name.."_ConquestDiff",conquestProgress)
+            DCEI.Save.Set(zone.name.."_BossDiff",bossProgress)
+        end
+        
+    end)
+    if(shouldSave == true) then
+        DCEI.LogMessage("Saving new difficulty values!")
+        DCEI.Save.Commit()
+    end
+end
+
+function GetCurrentZone()
+    if(MAIN_UI == nil) then
+        DCEI.LogMessage("WARNING! MainUI is NIL! ")
+    else
+        if(MAIN_UI.selectedZone == nil) then
+            DCEI.LogMessage("WARNING! MainUI.SelectedZone is NIL! ")
+        end
+    end
+    DCEI.LogMessage("Got selected zone: "..MAIN_UI.selectedZone)
+    return allZones[MAIN_UI.selectedZone]
+end
+
+
+
+--Returns the difficulty int from the selected zone. Will return 1,2, or 3 corresponding to standard,conquest, or boss respectively.
+function GetDifficultyIntFromSelectedMode()
+    return GetDifficultyIntFromMode(MAIN_UI.selectedModeType)
+end
+
+function GetCurrentDifficultyLevelForZone()
+    return GetCurrentZone().currentDifficulty[GetDifficultyIntFromSelectedMode()]
+end
+
+function GetCurrentDifficultyFromMode(modeName)
+    return GetCurrentZone().currentDifficulty[GetDifficultyIntFromMode(modeName)]
+end
+
+function ConvertNumberToRomanNumeral(number)
+    if(number == 1) then
+        return "I"
+    elseif(number == 2) then 
+        return "II"
+    elseif(number == 3) then 
+        return "III"
+    elseif(number == 4) then 
+        return "IV"
+    elseif(number == 5) then 
+        return "V"
+    end
+    return "?"
+end
+
+function GetDifficultyNameFromLevel(modeType, levelNumber)
+    if(modeType == "Boss") then return "<color=red>Boss" end
+    if(levelNumber <= 5) then
+        return modeType.." "..ConvertNumberToRomanNumeral(levelNumber)
+    else
+        return "<color=orange>Heroic "..ConvertNumberToRomanNumeral(levelNumber-5)
+    end
+    
+end
+
+
+function CreateMainDialog()
+    local dialogX = 1600
+    local dialogY = 900
+    local buttonX = 100
+    local buttonY = 100
+    local textFontSize = 28
+    local buttonOffsetY = 100
+    local container = DCEI.NewFrame(root)
+    
+    DCEI.SetVerticalOffsetInParent(container, 0)
+    DCEI.SetHorizontalOffsetInParent(container, 0)
+    DCEI.SetTooltipStyle(2)
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "gradientBGOvalMasked")
+    DCEI.SetSize(padding, dialogX, dialogY)
+    DCEI.SetMatchParent(padding,true, true)
+    DCEI.SetBackgroundImageColor(padding, 150, 225, 87, 255 / 255)
+    
+    local mainUIRoot = DCEI.NewFrame(container)
+    MAIN_UI.frame = mainUIRoot
+    DCEI.SetBackgroundImage(mainUIRoot, "gradientBG")
+    DCEI.SetSize(mainUIRoot, dialogX, dialogY)
+    DCEI.SetMatchParent(mainUIRoot,true, true)
+    DCEI.SetBackgroundImageColor(mainUIRoot, 150, 225, 87, 0 / 255)
+
+    local experienceBarBG = DCEI.NewFrame(padding)
+    DCEI.SetBackgroundImage(experienceBarBG,"bar_exp00_empty")
+    DCEI.SetSize(experienceBarBG, 230, 40)
+    DCEI.SetTopAlignmentInParent(experienceBarBG)
+    DCEI.SetLeftAlignmentInParent(experienceBarBG)
+    DCEI.SetHorizontalOffsetInParent(experienceBarBG,182)
+    DCEI.SetVerticalOffsetInParent(experienceBarBG,-90)
+
+    local experienceBarFill = DCEI.NewFrame(experienceBarBG)
+    DCEI.SetBackgroundImage(experienceBarFill,"bar_exp00_fill")
+    DCEI.SetSize(experienceBarFill, 230, 40)
+    DCEI.SetBackgroundImageFillHorizontal(experienceBarFill)
+    DCEI.SetBackgroundImageFillAmount(experienceBarFill,0.5)
+    
+    local experienceText = DCEI.NewText(experienceBarBG)
+    DCEI.SetText(experienceText,"100000 / 220000")
+    DCEI.SetTextFontSize(experienceText,20)
+    DCEI.SetHorizontalOffsetInParent(experienceText,5)
+    DCEI.SetMaxSize(experienceText,175,30)
+    
+
+    local experienceFrame = DCEI.NewFrame(experienceBarBG)
+    DCEI.SetBackgroundImage(experienceFrame,"icon_ingame_blue")
+    DCEI.SetSize(experienceFrame, 60, 60)
+    --DCEI.SetTooltipText(experienceBarBG,"Level up to unlock more heroes!")
+    --DCEI.SetTopAlignmentInParent(experienceFrame)
+    DCEI.SetLeftAlignmentInParent(experienceFrame)
+    DCEI.SetHorizontalOffsetInParent(experienceFrame,-45)
+    --DCEI.SetVerticalOffsetInParent(experienceFrame,-80)
+
+    local levelText = DCEI.NewText(experienceFrame)
+    DCEI.SetText(levelText,"39")
+    DCEI.SetTextFontSize(levelText,35)
+    DCEI.SetVerticalOffsetInParent(levelText,0)
+    
+    local goldPanel = DCEI.NewFrame(experienceFrame)
+    DCEI.SetBackgroundImage(goldPanel,"bar_exp00_empty")
+    DCEI.SetSize(goldPanel, 255, 40)
+    DCEI.SetTopAlignmentInParent(goldPanel)
+    DCEI.SetLeftAlignmentInParent(goldPanel)
+    DCEI.SetHorizontalOffsetInParent(goldPanel,10)
+    DCEI.SetVerticalOffsetInParent(goldPanel,-70)
+    
+    local playerGoldIcon = DCEI.NewFrame(goldPanel)
+    DCEI.SetSize(playerGoldIcon,30,30)
+    DCEI.SetLeftAlignmentInParent(playerGoldIcon)
+    DCEI.SetBackgroundImage(playerGoldIcon,"icon_coin00")
+    DCEI.SetHorizontalOffsetInParent(playerGoldIcon,4)
+    --DCEI.SetVerticalOffsetInParent(playerGoldIcon,-65)
+
+    local playerGoldLabel = DCEI.NewText(playerGoldIcon)
+    DCEI.SetText(playerGoldLabel,"500000")
+    DCEI.SetTextFontSize(playerGoldLabel,22)
+    DCEI.SetRightAlignmentInParent(playerGoldLabel)
+    DCEI.SetSize(playerGoldLabel,200,30)
+    DCEI.SetTooltipText(playerGoldIcon,"Use gold to upgrade heroes. Gold is earned primarily from dungeon runs.")
+    DCEI.SetHorizontalOffsetInParent(playerGoldLabel,145)
+    DCEI.SetVerticalOffsetInParent(playerGoldLabel,0)
+
+    local rubyIcon = DCEI.NewFrame(goldPanel)
+    DCEI.SetSize(rubyIcon,30,30)
+    DCEI.SetLeftAlignmentInParent(rubyIcon)
+    DCEI.SetBackgroundImage(rubyIcon,"icon_gem00")
+    DCEI.SetTooltipText(rubyIcon,"Use rubies to buy upgraded chests or relics.")
+    DCEI.SetHorizontalOffsetInParent(rubyIcon,130)
+    --DCEI.SetVerticalOffsetInParent(playerGoldIcon,-65)
+
+    local rubyLabel = DCEI.NewText(rubyIcon)
+    DCEI.SetText(rubyLabel,"500000")
+    DCEI.SetTextFontSize(rubyLabel,22)
+    DCEI.SetRightAlignmentInParent(rubyLabel)
+    DCEI.SetSize(rubyLabel,200,30)
+    DCEI.SetHorizontalOffsetInParent(rubyLabel,145)
+    DCEI.SetVerticalOffsetInParent(rubyLabel,0)
+
+    MAIN_UI.UpdatePlayerCurrencies = function()
+        DCEI.SetText(playerGoldLabel,playerGold.." ")
+        DCEI.SetText(rubyLabel,playerRubies.." ")
+    end
+
+    MAIN_UI.UpdatePlayerCurrencies()
+
+    local addCurrencyButton = DCEI.NewButton(goldPanel)
+    DCEI.SetRightAlignmentInParent(addCurrencyButton)
+    DCEI.SetSize(addCurrencyButton,40,40)
+    DCEI.SetBackgroundImage(addCurrencyButton,"btn_green")
+    DCEI.SetHorizontalOffsetInParent(addCurrencyButton,30)
+
+    local addCurrencyButtonText = DCEI.NewText(addCurrencyButton)
+    DCEI.SetText(addCurrencyButtonText,"+")
+    DCEI.SetTextFontSize(addCurrencyButtonText,40)
+    DCEI.SetVerticalOffsetInParent(addCurrencyButtonText,0)
+
+    local banner = DCEI.NewFrame(mainUIRoot)
+    DCEI.SetBackgroundImage(banner,"banner02_purple")
+    DCEI.SetSize(banner,480,80)
+    DCEI.SetTopAlignmentInParent(banner)
+    DCEI.SetVerticalOffsetInParent(banner, -80)
+
+    local bannerText = DCEI.NewText(banner)
+    DCEI.SetText(bannerText,"Haunted Forest")
+    DCEI.SetTextFontSize(bannerText,40)
+    DCEI.SetVerticalOffsetInParent(bannerText,6)
+
+    local stack = DCEI.NewHStack(banner)
+    DCEI.SetBackgroundImage(stack, "frame_slot00")
+    DCEI.SetBackgroundImageColor(stack, 1, 1, 1, 10/255)
+    DCEI.SetSize(stack,450,75)
+    DCEI.SetBottomAlignmentInParent(stack)
+    DCEI.SetVerticalOffsetInParent(stack,-65)
+    DCEI.SetSpacing(stack,10)
+    DCEI.SetPadding(stack, 15)
+
+    local modeButtonSizeX = 135
+
+    local standardModeButton = DCEI.NewButton(stack)
+    DCEI.SetSize(standardModeButton,modeButtonSizeX,50)
+    DCEI.SetBackgroundImage(standardModeButton,"btn_yellow")
+    DCEI.SetTooltipText(standardModeButton,"Recruit a team of heroes during the run and take on zone-specific enemies.")
+    DCEI.SetOnClickCallback(standardModeButton,function()
+        MAIN_UI.selectedModeType = "Standard"
+        MAIN_UI.UpdateDifficulty()
+    end)
+    
+    local standardButtonText = DCEI.NewText(standardModeButton)
+    DCEI.SetText(standardButtonText,"Standard")
+    DCEI.SetTextFontSize(standardButtonText,23)
+    DCEI.SetVerticalOffsetInParent(standardButtonText,0)
+    
+
+    local conquestButton = DCEI.NewButton(stack)
+    DCEI.SetSize(conquestButton,modeButtonSizeX,50)
+    DCEI.SetBackgroundImage(conquestButton,"btn_yellow")
+    DCEI.SetTooltipText(conquestButton,"Choose a team of heroes and take on hostile mobs in this zone!")
+    DCEI.SetOnClickCallback(conquestButton,function()
+        MAIN_UI.selectedModeType = "Conquest"
+        MAIN_UI.UpdateDifficulty()
+    end)
+    if(GetCurrentDifficultyFromMode("Standard") < 5) then
+        DCEI.EnableButton(conquestButton, false)
+        DCEI.SetTooltipText(conquestButton,"You can't choose this mode until you've beaten Standard V.")
+    end
+
+    local conquestButtonText = DCEI.NewText(conquestButton)
+    DCEI.SetText(conquestButtonText,"Conquest")
+    DCEI.SetTextFontSize(conquestButtonText,23)
+    DCEI.SetVerticalOffsetInParent(conquestButtonText,0)
+
+    local bossButton = DCEI.NewButton(stack)
+    DCEI.SetSize(bossButton,modeButtonSizeX,50)
+    DCEI.SetBackgroundImage(bossButton,"btn_red")
+    DCEI.SetOnClickCallback(bossButton,function()
+        MAIN_UI.selectedModeType = "Boss"
+        MAIN_UI.UpdateDifficulty()
+    end)
+
+    if(GetCurrentDifficultyFromMode("Conquest") < 5) then
+        DCEI.EnableButton(bossButton, false)
+        DCEI.SetTooltipText(bossButton,"You can't choose this mode until you've beaten Conquest V.")
+    end
+
+    local bossButtonText = DCEI.NewText(bossButton)
+    DCEI.SetText(bossButtonText,"Boss")
+    DCEI.SetTextFontSize(bossButtonText,23)
+    DCEI.SetTooltipText(bossButtonText,"Take on this zone's unique boss and earn powerful rewards!")
+    DCEI.SetVerticalOffsetInParent(bossButtonText,0)
+    
+
+    local zoneIndicator = DCEI.NewFrame(padding)
+    DCEI.SetBackgroundImage(zoneIndicator,"elemental_trial_dark")
+    DCEI.SetSize(zoneIndicator,400,400)
+    DCEI.SetVerticalOffsetInParent(zoneIndicator, 25)
+
+    local difficultyTextBG = DCEI.NewFrame(zoneIndicator)
+    DCEI.SetBackgroundImage(difficultyTextBG,"frame07")
+    DCEI.SetBackgroundImageColor(difficultyTextBG,255,255,255,150/255)
+    DCEI.SetSize(difficultyTextBG,400,60)
+    DCEI.SetTopAlignmentInParent(difficultyTextBG)
+    DCEI.SetVerticalOffsetInParent(difficultyTextBG, -15)
+
+    local difficultyDisplayText = DCEI.NewText(difficultyTextBG)
+    DCEI.SetText(difficultyDisplayText,"<size=15><color=#b3b3b3>Difficulty:\n</color></size>".."Standard I")
+    DCEI.SetTextFontSize(difficultyDisplayText,23)
+
+    
+    --DCEI.SetTopAlignmentInParent(difficultyDisplayText)
+    --DCEI.SetVerticalOffsetInParent(difficultyDisplayText,-15)
+
+    --Zone selector Buttons
+    local leftZoneButton = DCEI.NewButton(zoneIndicator)
+    DCEI.SetSize(leftZoneButton,80,125)
+    DCEI.SetLeftAlignmentInParent(leftZoneButton)
+    DCEI.SetHorizontalOffsetInParent(leftZoneButton,-340)
+    DCEI.SetBackgroundImage(leftZoneButton,"arrow01_l")
+
+    local rightZoneButton = DCEI.NewButton(zoneIndicator)
+    DCEI.SetSize(rightZoneButton,80,125)
+    DCEI.SetRightAlignmentInParent(rightZoneButton)
+    DCEI.SetHorizontalOffsetInParent(rightZoneButton,340)
+    DCEI.SetBackgroundImage(rightZoneButton,"arrow01_r")
+
+    local zoneBorder = DCEI.NewFrame(zoneIndicator)
+    DCEI.SetBackgroundImage(zoneBorder,"frame_gold")
+    DCEI.SetSize(zoneBorder,400,400)
+    --DCEI.SetTopAlignmentInParent(zoneIndicator)
+    DCEI.SetVerticalOffsetInParent(zoneBorder, 0)
+    
+    local twistBox = DCEI.NewFrame(zoneIndicator)
+    DCEI.SetBackgroundImage(twistBox,"frame_thick_dark_grey")
+    DCEI.SetSize(twistBox,205,375)
+    --DCEI.SetTopAlignmentInParent(zoneIndicator)
+    DCEI.SetHorizontalOffsetInParent(twistBox, 325)
+
+    local twistTitleText = DCEI.NewText(twistBox)
+    DCEI.SetText(twistTitleText,"Zone Twist")
+    DCEI.SetTextFontSize(twistTitleText,27)
+    DCEI.SetTopAlignmentInParent(twistTitleText)
+    DCEI.SetVerticalOffsetInParent(twistTitleText,-15)
+
+    local twistText = DCEI.NewText(twistBox)
+    DCEI.SetText(twistText,"<color=yellow>Restless Dead</color>\n\nSuccessfully channeled abilities spawn hostile undead that attack your heroes.")
+    DCEI.SetTextFontSize(twistText,20)
+    DCEI.SetTopAlignmentInParent(twistText)
+    DCEI.SetSize(twistText,175,370)
+    DCEI.SetVerticalOffsetInParent(twistText,-15)
+
+    local descRewardsBox = DCEI.NewFrame(zoneIndicator)
+    DCEI.SetBackgroundImage(descRewardsBox,"frame_thick_dark_grey")
+    DCEI.SetSize(descRewardsBox,205,375)
+    --DCEI.SetTopAlignmentInParent(zoneIndicator)
+    DCEI.SetHorizontalOffsetInParent(descRewardsBox, -325)
+
+    local rewardText = DCEI.NewText(descRewardsBox)
+    DCEI.SetText(rewardText,"<color=yellow>Rewards: \n\n\n\n\n\n")
+    DCEI.SetTextFontSize(rewardText,25)
+    DCEI.SetBottomAlignmentInParent(rewardText)
+    DCEI.SetSize(rewardText,175,100)
+    DCEI.SetVerticalOffsetInParent(rewardText,20)
+
+    local goldRewardIcon = DCEI.NewFrame(descRewardsBox)
+    DCEI.SetSize(goldRewardIcon,45,45)
+    DCEI.SetLeftAlignmentInParent(goldRewardIcon)
+    DCEI.SetBackgroundImage(goldRewardIcon,"icon_coin00")
+    DCEI.SetHorizontalOffsetInParent(goldRewardIcon,10)
+    DCEI.SetVerticalOffsetInParent(goldRewardIcon,-85)
+
+    local goldLabel = DCEI.NewText(goldRewardIcon)
+    DCEI.SetText(goldLabel,"<color=yellow>Gold")
+    DCEI.SetTextFontSize(goldLabel,25)
+    DCEI.SetRightAlignmentInParent(goldLabel)
+    DCEI.SetSize(goldLabel,200,150)
+    DCEI.SetHorizontalOffsetInParent(goldLabel,160)
+    DCEI.SetVerticalOffsetInParent(goldLabel,0)
+
+    local chestReward = DCEI.NewFrame(descRewardsBox)
+    DCEI.SetSize(chestReward,70,70)
+    DCEI.SetLeftAlignmentInParent(chestReward)
+    DCEI.SetBackgroundImage(chestReward,"hero_chest_t1")
+    DCEI.SetHorizontalOffsetInParent(chestReward,0)
+    DCEI.SetVerticalOffsetInParent(chestReward,-140)
+
+    local chestName = DCEI.NewText(chestReward)
+    DCEI.SetText(chestName,"<color=yellow>Chest")
+    DCEI.SetTextFontSize(chestName,15)
+    DCEI.SetTooltipText(chestReward,"Contains ???")
+    DCEI.SetRightAlignmentInParent(chestName)
+    DCEI.SetSize(chestName,200,150)
+    DCEI.SetHorizontalOffsetInParent(chestName,160)
+    DCEI.SetVerticalOffsetInParent(chestName,-10)
+
+    MAIN_UI.UpdateRewardText = function()
+        local rewardChest = GetChestRewardFromMode(MAIN_UI.selectedModeType)
+        DCEI.SetText(chestName,"<color=yellow>"..rewardChest.name)
+        DCEI.SetTooltipText(chestReward,rewardChest.description)
+        DCEI.SetBackgroundImage(chestReward,rewardChest.iconLink)
+    end
+
+    local difficultyUpdateFunction = function()
+        DCEI.SetText(difficultyDisplayText,"<size=15><color=#b3b3b3>Difficulty:\n</color></size>"..GetDifficultyNameFromLevel(MAIN_UI.selectedModeType,GetCurrentDifficultyLevelForZone()))
+        MAIN_UI.UpdateRewardText()
+    end
+
+    MAIN_UI.UpdateDifficulty = difficultyUpdateFunction
+
+    MAIN_UI.UpdateDifficulty()
+
+    MAIN_UI.UpdateRewardText()
+
+    local zoneText = DCEI.NewText(descRewardsBox)
+    DCEI.SetText(zoneText,"<color=#b3b3b3>Undead soldiers and dark spellcasters roam these cursed woods.")
+    DCEI.SetTextFontSize(zoneText,20)
+    DCEI.SetTopAlignmentInParent(zoneText)
+    DCEI.SetSize(zoneText,195,370)
+    DCEI.SetVerticalOffsetInParent(zoneText,105)
+
+    MAIN_UI.SetZonePanelActive = function(state) 
+        DCEI.SetActive(zoneIndicator,state)
+        DCEI.SetActive(descRewardsBox,state)
+        DCEI.SetActive(twistBox,state)
+        DCEI.SetActive(banner,state)
+        DCEI.SetActive(stack,state)
+    end
+
+    MAIN_UI.homeButtons = {}
+
+    local button = DCEI.NewButton(padding)
+    MAIN_UI.homeButtons[1] = button
+    DCEI.SetVerticalOffsetInParent(button, buttonOffsetY)
+    DCEI.SetBackgroundImage(button, "btn_yellow")
+    DCEI.SetSize(button, buttonX*2, buttonY*1.2)
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetTooltipText(button, "Begin a new dungeon run in the selected region!")
+    DCEI.SetOnClickCallback(button, function()
+        OnEmbarkButtonClick()
+    end)
+
+
+
+    local buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText,"Embark")
+    DCEI.SetTextFontSize(buttonText,textFontSize)
+    DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    local buttonIcon = DCEI.NewFrame(button)
+    DCEI.SetBackgroundImage(buttonIcon,"icon_sword")
+    DCEI.SetSize(buttonIcon,buttonX-10,buttonY-10)
+
+    --ArmoryButton
+    button = DCEI.NewButton(mainUIRoot)
+    MAIN_UI.homeButtons[3] = button
+    DCEI.SetVerticalOffsetInParent(button, buttonOffsetY)
+    DCEI.SetHorizontalOffsetInParent(button, buttonX*-2)
+    DCEI.SetBackgroundImage(button, "btn_blue2")
+    DCEI.SetSize(button, buttonX, buttonY)
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetTooltipText(button, "View your hero collection.")
+    DCEI.SetOnClickCallback(button, function()
+        CreateHeroesUI()
+    end)
+    
+    buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText,"Heroes")
+    DCEI.SetTextFontSize(buttonText,textFontSize)
+    DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    buttonIcon = DCEI.NewFrame(button)
+    DCEI.SetBackgroundImage(buttonIcon,"icon_gear_soldier_helmet_02")
+    DCEI.SetSize(buttonIcon,buttonX-10,buttonY-10)
+
+    --LootButton
+    button = DCEI.NewButton(mainUIRoot)
+    MAIN_UI.homeButtons[2] = button
+    DCEI.SetVerticalOffsetInParent(button, buttonOffsetY)
+    DCEI.SetHorizontalOffsetInParent(button, buttonX*-3.5)
+    DCEI.SetBackgroundImage(button, "btn_blue2")
+    DCEI.SetSize(button, buttonX, buttonY)
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetTooltipText(button, "Open chests to earn loot!")
+    DCEI.SetOnClickCallback(button, function()
+        MAIN_UI.SetHomeButtonsActive(false)
+        MAIN_UI.SetZonePanelActive(false)
+        CreateLootUI()
+    end)
+
+    buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText,"Loot")
+    DCEI.SetTextFontSize(buttonText,textFontSize)
+    DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    buttonIcon = DCEI.NewFrame(button)
+    DCEI.SetBackgroundImage(buttonIcon,"gold_chest_open")
+    DCEI.SetSize(buttonIcon,buttonX-20,buttonY-20)
+
+    --RelicsButton
+    button = DCEI.NewButton(mainUIRoot)
+    MAIN_UI.homeButtons[4] = button
+    DCEI.SetVerticalOffsetInParent(button, buttonOffsetY)
+    DCEI.SetHorizontalOffsetInParent(button, buttonX*2)
+    DCEI.SetBackgroundImage(button, "btn_blue2")
+    DCEI.SetSize(button, buttonX, buttonY)
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetTooltipText(button, "View your collected and active relics.")
+    DCEI.SetOnClickCallback(button, function()
+        
+    end)
+
+    buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText,"Relics")
+    DCEI.SetTextFontSize(buttonText,textFontSize)
+    DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    buttonIcon = DCEI.NewFrame(button)
+    DCEI.SetBackgroundImage(buttonIcon,"icon_catalyst_main_item3_blue_02")
+    DCEI.SetSize(buttonIcon,buttonX-10,buttonY-10)
+
+    --PartyButton
+    button = DCEI.NewButton(mainUIRoot)
+    MAIN_UI.homeButtons[5] = button
+    DCEI.SetVerticalOffsetInParent(button, buttonOffsetY)
+    DCEI.SetHorizontalOffsetInParent(button, buttonX*3.5)
+    DCEI.SetBackgroundImage(button, "btn_blue2")
+    DCEI.SetSize(button, buttonX, buttonY)
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetTooltipText(button, "View or edit your active dungeon party. (Only applies to Conquest & Boss runs).")
+    DCEI.SetOnClickCallback(button, function()
+        CreatePartyUI()
+    end)
+
+    if(GetCurrentDifficultyFromMode("Standard") < 5) then
+        DCEI.EnableButton(button, false)
+        DCEI.SetTooltipText(button,"You can't edit your party until you've completed Standard V.")
+    end
+
+    buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText,"Party")
+    DCEI.SetTextFontSize(buttonText,textFontSize)
+    DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    buttonIcon = DCEI.NewFrame(button)
+    DCEI.SetVerticalOffsetInParent(buttonIcon,10)
+    DCEI.SetBackgroundImage(buttonIcon,"icon_catalyst_class_hero_03")
+    DCEI.SetSize(buttonIcon,buttonX,buttonY)
+
+    MAIN_UI.SetHomeButtonsActive = function(state)
+        for index=1,5 do
+            DCEI.SetActive(MAIN_UI.homeButtons[index],state)
+        end
+        
+    end
+    
+end
+
+function CreateHeroesUI()
+    MAIN_UI.SetHomeButtonsActive(false)
+    MAIN_UI.SetZonePanelActive(false)
+    local ROW_COUNT = 4
+    local HEROES_PER_ROW = 5
+    local container = DCEI.NewFrame(root)
+    DCEI.SetVerticalOffsetInParent(container, 0)
+    DCEI.SetHorizontalOffsetInParent(container, 0)
+
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "gradientBGOvalMasked")
+    DCEI.SetSize(padding, 1, 1)
+    DCEI.SetMatchParent(padding,true, true)
+    DCEI.SetBackgroundImageColor(padding, 150, 225, 87, 0 / 255)
+
+   
+
+    local heroesFrame = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(heroesFrame, "frame_slot00")
+    DCEI.SetSize(heroesFrame, 600, 560)
+
+    local backButton = DCEI.NewButton(heroesFrame)
+    DCEI.SetBackgroundImage(backButton, "btn_red")
+    DCEI.SetSize(backButton,575,50)
+    DCEI.SetBottomAlignmentInParent(backButton)
+    --DCEI.SetLeftAlignmentInParent(backButton)
+    --DCEI.SetHorizontalOffsetInParent(backButton,25)
+    DCEI.SetVerticalOffsetInParent(backButton,-40)
+    DCEI.SetTooltipText(backButton,"Go Back")
+
+    local backButtonText = DCEI.NewText(backButton)
+    DCEI.SetTextFontSize(backButtonText,26)
+    DCEI.SetText(backButtonText,"Back")
+    DCEI.SetOnClickCallback(backButton, function()
+        DCEI.Destroy(container)
+        MAIN_UI.SetZonePanelActive(true)
+        MAIN_UI.SetHomeButtonsActive(true)
+    end)
+
+    local stack = DCEI.NewVStack(heroesFrame)
+    DCEI.SetBackgroundImage(stack, "frame_slot00")
+    DCEI.SetBackgroundImageColor(stack, 1, 1, 1, 0/255)
+    DCEI.SetSize(stack,550,550)
+    DCEI.SetTopAlignmentInParent(stack)
+    DCEI.SetVerticalOffsetInParent(stack,-95)
+    DCEI.SetSpacing(stack,55)
+    DCEI.SetPadding(stack, -10)
+    DCEI.SetHorizontalOffsetInParent(stack,-12)
+    local heroID = 1
+    local heroCount = GetTableSize(HERO_TYPES)
+    for index=1,ROW_COUNT do
+        local heroRow = DCEI.NewHStack(stack)
+        DCEI.SetBackgroundImage(heroRow, "frame_slot00")
+        DCEI.SetBackgroundImageColor(heroRow, 1, 1, 1, 0/255)
+        DCEI.SetSize(heroRow,550,70)
+        --DCEI.SetTopAlignmentInParent(stack)
+        --DCEI.SetVerticalOffsetInParent(stack,10)
+        DCEI.SetSpacing(heroRow,35)
+        DCEI.SetPadding(heroRow, 15)
+        for index=1,HEROES_PER_ROW do
+            
+            local heroFrame = DCEI.NewButton(heroRow)
+            DCEI.SetBackgroundImage(heroFrame, "btn_grey_blue")
+            DCEI.SetBackgroundImageColor(heroFrame, 1, 1, 1, 255/255)
+            DCEI.SetSize(heroFrame,80,80)
+
+            local heroOverlayIcon = DCEI.NewFrame(heroFrame)
+            DCEI.SetSize(heroOverlayIcon,60,60)
+            DCEI.SetBackgroundImage(heroOverlayIcon, "lock")
+            DCEI.SetBackgroundImageColor(heroOverlayIcon, 255, 1, 1, 220/255)
+            DCEI.SetBackgroundImageGrayScale(heroOverlayIcon, true)
+
+            local heroNameText = DCEI.NewText(heroFrame)
+            DCEI.SetSize(heroNameText,110,15)
+            DCEI.SetTextFontSize(heroNameText,16)
+            DCEI.SetTopAlignmentInParent(heroNameText)
+            DCEI.SetVerticalOffsetInParent(heroNameText, 28)
+
+            local barDimensions = {x=85, y=18}
+            local heroBarBG = DCEI.NewFrame(heroFrame)
+            DCEI.SetBackgroundImage(heroBarBG,"bar_energy_empty")
+            DCEI.SetSize(heroBarBG, barDimensions.x, barDimensions.y)
+            DCEI.SetBottomAlignmentInParent(heroBarBG)
+            --DCEI.SetLeftAlignmentInParent(heroBarBG)
+            --DCEI.SetHorizontalOffsetInParent(heroBarBG,182)
+            DCEI.SetVerticalOffsetInParent(heroBarBG,-30)
+
+            local heroBarFill = DCEI.NewFrame(heroBarBG)
+            DCEI.SetBackgroundImage(heroBarFill,"bar_energy_fill")
+            DCEI.SetSize(heroBarFill, barDimensions.x, barDimensions.y)
+            DCEI.SetBackgroundImageFillHorizontal(heroBarFill)
+            DCEI.SetBackgroundImageFillAmount(heroBarFill,0.5)
+    
+            local heroBarText = DCEI.NewText(heroBarBG)
+            DCEI.SetText(heroBarText,"5 / 14")
+            DCEI.SetTextFontSize(heroBarText,15)
+            --DCEI.SetHorizontalOffsetInParent(experienceText,5)
+            DCEI.SetMaxSize(heroBarText,barDimensions.x,barDimensions.y)
+
+            local heroLevelTextBG = DCEI.NewFrame(heroBarBG)
+            DCEI.SetBackgroundImage(heroLevelTextBG,"bar_exp01_empty")
+            DCEI.SetBackgroundImageColor(heroLevelTextBG,1,1,1,150/255)
+            DCEI.SetVerticalOffsetInParent(heroLevelTextBG,24)
+            DCEI.SetSize(heroLevelTextBG,barDimensions.x-10,barDimensions.y)
+
+            local heroLevelText = DCEI.NewText(heroLevelTextBG)
+            DCEI.SetText(heroLevelText,"<color=yellow>Level 8")
+            DCEI.SetTextFontSize(heroLevelText,15)
+            DCEI.SetMaxSize(heroLevelText,barDimensions.x,barDimensions.y)
+            
+            if(heroID <= heroCount) then
+                local hero = HERO_TYPES[heroID]
+                DCEI.SetBackgroundImage(heroFrame, hero.image)
+                DCEI.SetActive(heroOverlayIcon, false)
+                DCEI.SetText(heroNameText,hero.name)
+            else
+                DCEI.EnableButton(heroFrame,false)
+                DCEI.SetText(heroNameText,"<color=red>Locked")
+                DCEI.SetActive(heroBarBG,false)
+            end
+            heroID = heroID + 1
+        end
+    end
+    DCEI.Wait(0.2)
+    DCEI.SetTooltipText(backButton,"")
+end
+
+local activeParty = {}
+function CreatePartyUI()
+    MAIN_UI.SetHomeButtonsActive(false)
+    MAIN_UI.SetZonePanelActive(false)
+
+    local container = DCEI.NewFrame(root)
+    DCEI.SetVerticalOffsetInParent(container, 0)
+    DCEI.SetHorizontalOffsetInParent(container, 0)
+
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "gradientBGOvalMasked")
+    DCEI.SetSize(padding, 1, 1)
+    DCEI.SetBackgroundImageColor(padding, 150, 225, 87, 0 / 255)
+
+   
+
+    local partyFrame = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(partyFrame, "frame_slot00")
+    DCEI.SetSize(partyFrame, 575, 400)
+
+    local titleText = DCEI.NewText(partyFrame)
+    DCEI.SetTextFontSize(titleText,30)
+    DCEI.SetText(titleText,"Active Party")
+    DCEI.SetTopAlignmentInParent(titleText)
+    DCEI.SetVerticalOffsetInParent(titleText, -15)
+
+    local backButton = DCEI.NewButton(partyFrame)
+    DCEI.SetBackgroundImage(backButton, "btn_red")
+    DCEI.SetSize(backButton,475,50)
+    DCEI.SetBottomAlignmentInParent(backButton)
+    --DCEI.SetLeftAlignmentInParent(backButton)
+    --DCEI.SetHorizontalOffsetInParent(backButton,25)
+    DCEI.SetVerticalOffsetInParent(backButton,19)
+    DCEI.SetTooltipText(backButton,"Go Back")
+
+    local backButtonText = DCEI.NewText(backButton)
+    DCEI.SetTextFontSize(backButtonText,26)
+    DCEI.SetText(backButtonText,"Back")
+    DCEI.SetOnClickCallback(backButton, function()
+        DCEI.Destroy(container)
+        MAIN_UI.SetZonePanelActive(true)
+        MAIN_UI.SetHomeButtonsActive(true)
+    end)
+
+    local heroRow = DCEI.NewHStack(partyFrame)
+    DCEI.SetBackgroundImage(heroRow, "frame_slot00")
+    DCEI.SetBackgroundImageColor(heroRow, 1, 1, 1, 0/255)
+    DCEI.SetSize(heroRow,550,70)
+    DCEI.SetSpacing(heroRow,10)
+    DCEI.SetPadding(heroRow, 10)
+    DCEI.SetTopAlignmentInParent(heroRow)
+    DCEI.SetVerticalOffsetInParent(heroRow,-65)
+    local PARTY_SLOTS = 6
+    MAIN_UI.activePartySlot = {}
+    MAIN_UI.activePartyCancelSlot = {}
+    MAIN_UI.UpdateActiveParty = {}
+    for index=1, PARTY_SLOTS do
+        local partySlotFrame = DCEI.NewButton(heroRow)
+        MAIN_UI.activePartySlot[index] = partySlotFrame
+        DCEI.SetSize(partySlotFrame, 80,80)
+        DCEI.SetBackgroundImage(partySlotFrame,"btn_grey_blue")
+        if(activeParty[index] ~= nil) then
+            DCEI.SetBackgroundImage(partySlotFrame,activeParty[index].image)
+        end
+
+        local emptySlotButton = DCEI.NewButton(partySlotFrame)
+        MAIN_UI.activePartyCancelSlot[index] = emptySlotButton
+        DCEI.SetSize(emptySlotButton, 30,30)
+        DCEI.SetTopAlignmentInParent(emptySlotButton)
+        DCEI.SetRightAlignmentInParent(emptySlotButton)
+        DCEI.SetHorizontalOffsetInParent(emptySlotButton,20)
+        DCEI.SetVerticalOffsetInParent(emptySlotButton,20)
+        DCEI.SetBackgroundImage(emptySlotButton,"btn_close")
+
+        DCEI.SetOnClickCallback(emptySlotButton, function ()
+            activeParty[index] = nil
+            MAIN_UI.UpdateActiveParty()
+        end)
+    end
+
+    MAIN_UI.UpdateActiveParty = function()
+        
+        for index=1, PARTY_SLOTS do
+            local partySlotFrame = MAIN_UI.activePartySlot[index]
+            DCEI.SetBackgroundImage(partySlotFrame,"btn_grey_blue")
+            if(activeParty[index] ~= nil) then
+                DCEI.SetBackgroundImage(partySlotFrame,activeParty[index].image)
+                DCEI.EnableButton(partySlotFrame, true)
+                DCEI.SetActive(MAIN_UI.activePartyCancelSlot[index], true)
+            else
+                DCEI.EnableButton(partySlotFrame, false)
+                DCEI.SetActive(MAIN_UI.activePartyCancelSlot[index], false)
+            end
+        end
+    end
+    
+    
+    local spacing = 35
+    local availableHeroFrame = {}
+    availableHeroFrame.background = DCEI.NewFrame(partyFrame)
+    availableHeroFrame.parent = DCEI.NewHScroll(availableHeroFrame.background)
+    availableHeroFrame.container = DCEI.GetScrollContent(availableHeroFrame.parent)
+
+    DCEI.SetBackgroundImage(availableHeroFrame.parent, "frame_slot00")
+    DCEI.SetBackgroundImageColor(availableHeroFrame.parent, 1, 1, 1, 0/255)
+    DCEI.SetSize(availableHeroFrame.background, 550,90)
+    --DCEI.SetBottomAlignmentInParent(availableHeroFrame.background)
+    DCEI.SetVerticalOffsetInParent(availableHeroFrame.background, -70)
+    --DCEI.SetVerticalOffsetInParent(availableHeroFrame.container, -40)
+    DCEI.SetSpacing(availableHeroFrame.container,10)
+    DCEI.SetPaddingTop(availableHeroFrame.container,20)
+    DCEI.SetPaddingLeft(availableHeroFrame.container,20)
+    DCEI.SetPaddingBottom(availableHeroFrame.container,30)
+    DCEI.SetScrollPosition(availableHeroFrame.container,1)
+
+    local availableHeroesText = DCEI.NewText(partyFrame)
+    DCEI.SetTextFontSize(availableHeroesText,24)
+    DCEI.SetText(availableHeroesText,"Available Heroes")
+    DCEI.SetTopAlignmentInParent(availableHeroesText)
+    DCEI.SetCenterAlignmentInParent(availableHeroesText)
+    DCEI.SetVerticalOffsetInParent(availableHeroesText, 5)
+
+    for index=1,GetTableSize(HERO_TYPES) do
+        local hero = HERO_TYPES[index]
+        local heroFrame = DCEI.NewButton(availableHeroFrame.container)
+        DCEI.SetBackgroundImage(heroFrame, hero.image)
+        DCEI.SetBackgroundImageColor(heroFrame, 1, 1, 1, 255/255)
+        DCEI.SetSize(heroFrame,70,70)
+        DCEI.SetOnClickCallback(heroFrame, function ()
+            if(IsPartyFull(activeParty) == false) then
+                activeParty[GetEmptyPartySlot(activeParty)] = hero
+                DCEI.LogMessage("Added hero: "..hero.name.." to party!")
+                MAIN_UI.UpdateActiveParty()
+            else
+                ShowErrorText("Party full!")
+            end
+            
+        end)
+    end
+    MAIN_UI.UpdateActiveParty()
+end
+
+function GetEmptyPartySlot(partyLink)
+    for index=1,6 do
+        if(partyLink[index] == nil) then
+            return index
+        end
+    end
+    return -1
+end
+
+function IsPartyFull(partyLink)
+    return GetEmptyPartySlot(partyLink) == -1
+end
+
+function CreateLootUI()
+    local container = DCEI.NewFrame(root)
+    DCEI.SetVerticalOffsetInParent(container, 0)
+    DCEI.SetHorizontalOffsetInParent(container, 0)
+
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "gradientBGOvalMasked")
+    DCEI.SetSize(padding, dialogX, dialogY)
+    DCEI.SetMatchParent(padding,true, true)
+    DCEI.SetBackgroundImageColor(padding, 150, 225, 87, 0 / 255)
+
+    local backButton = DCEI.NewButton(padding)
+    DCEI.SetBackgroundImage(backButton, "btn_red")
+    DCEI.SetSize(backButton,125,80)
+    DCEI.SetBottomAlignmentInParent(backButton)
+    DCEI.SetLeftAlignmentInParent(backButton)
+    DCEI.SetHorizontalOffsetInParent(backButton,25)
+    DCEI.SetVerticalOffsetInParent(backButton,25)
+    --DCEI.SetTooltipText(backButton,"Return to the main menu.")
+    local backButtonText = DCEI.NewText(backButton)
+    DCEI.SetTextFontSize(backButtonText,26)
+    DCEI.SetText(backButtonText,"Back")
+    DCEI.SetOnClickCallback(backButton, function()
+        DCEI.Destroy(container)
+        MAIN_UI.SetZonePanelActive(true)
+        MAIN_UI.SetHomeButtonsActive(true)
+    end)
+    --DCEI.SetTopAlignmentInParent(backButtonText)
+    --DCEI.SetMaxSize(backButtonText,90,50)
+
+
+    local stack = DCEI.NewHStack(padding)
+    DCEI.SetBackgroundImage(stack, "frame_slot00")
+    DCEI.SetBackgroundImageColor(stack, 1, 1, 1, 0/255)
+    DCEI.SetSize(stack,900,175)
+    DCEI.SetBottomAlignmentInParent(stack)
+    DCEI.SetVerticalOffsetInParent(stack,10)
+    DCEI.SetSpacing(stack,30)
+    DCEI.SetPadding(stack, 15)
+
+
+    for index=1,6 do
+        local chestSlot = DCEI.NewButton(stack)
+        DCEI.SetBackgroundImage(chestSlot, "btn_purple")
+        DCEI.SetSize(chestSlot,120,120)
+        --DCEI.SetBottomAlignmentInParent(chestSlot)
+        DCEI.SetTooltipText(chestSlot,"Here's A Chest")
+        if(index % 2 == 0) then
+            DCEI.EnableButton(chestSlot,false)
+        end
+
+        local chestIcon = DCEI.NewFrame(chestSlot)
+        DCEI.SetBackgroundImage(chestIcon, "hero_chest_t1")
+        DCEI.SetSize(chestIcon,100,100)
+        DCEI.SetVerticalOffsetInParent(chestIcon,12)
+        DCEI.SetHorizontalOffsetInParent(chestIcon,5)
+        if(index % 2 == 0) then
+            DCEI.SetBackgroundImageGrayScale(chestIcon,true)
+        end
+        
+
+        local chestNameText = DCEI.NewText(chestSlot)
+        DCEI.SetTextFontSize(chestNameText,16)
+        DCEI.SetText(chestNameText,"Standard Chest")
+        DCEI.SetTopAlignmentInParent(chestNameText)
+        DCEI.SetMaxSize(chestNameText,110,40)
+
+        local chestUnlockStatus = DCEI.NewText(chestSlot)
+        DCEI.SetTextFontSize(chestUnlockStatus,12)
+        
+        DCEI.SetBottomAlignmentInParent(chestUnlockStatus)
+        DCEI.SetMaxSize(chestUnlockStatus,110,40)
+
+        if(index % 2 == 0) then
+            DCEI.SetText(chestUnlockStatus,"<color=red>Unlocks in 2hr")
+        else
+            DCEI.SetText(chestUnlockStatus,"<color=green>Ready To Open!")
+        end
+    end
+
+end
+
+function OnEmbarkButtonClick()
+    local currentZone = GetCurrentZone()
+    local launchDifficulty = GetCurrentDifficultyLevelForZone()
+    local dungeonData = {zone = MAIN_UI.selectedZone, difficulty = launchDifficulty, isHeroic = launchDifficulty > 5, type = MAIN_UI.selectedModeType}
+    
+    ConfirmDialog("Dungeon: "..currentZone.name,"This will begin a dungeon. Are you sure?","Let's Go!", "Go Back",function()
+        --DCEI.Wait(1)
+        DCEI.Destroy(MAIN_UI.frame)
+        local encodedData = json.encode(dungeonData)
+        DCEI.Save.Set("DungeonData",encodedData)
+        DCEI.Save.Commit()
+        DCEI.PlayLevel(currentZone.map,"Shadow Forest")
+    end,function()
+        
+    end)
+end
+
+function ShowErrorText(text)
+    ShowRelevantText("<color=red>"..text)
+end
+
+local relevantTextBox = nil
+local relevantID = 0
+function ShowRelevantText(text)
+    if(relevantTextBox ~= nil) then 
+        --DCEI.Destroy(relevantTextBox)
+        --relevantTextBox = nil
+    end
+    relevantID = relevantID + 1
+    local container = DCEI.NewFrame(root)
+    --relevantTextBox = container
+    --DCEI.SetBottomAlignmentInParent(container)
+    --DCEI.SetLeftAlignmentInParent(container)
+    --DCEI.SetHorizontalOffsetInParent(container, 15)
+    --DCEI.SetVerticalOffsetInParent(container, -5)
+    local DIALOG_X = 300
+    local DIALOG_Y = 150
+    local xPos = DCEI.GetMousePosition2D().x
+    local yPos = DCEI.GetMousePosition2D().y
+    local tempUnit = DCEI.CreateUnit(1,1,"Temp Marker Unit",xPos,yPos)
+    --DCEI.LogMessage("Setting Roffset to :"..xPos..","..yPos)
+    DCEI.SetHorizontalOffsetInParent(container, xPos)
+    DCEI.SetVerticalOffsetInParent(container, yPos)
+    local padding = DCEI.NewFrame(container)
+    local options = {
+        offset = {up = 0, front = 0, right = 0},
+        center_at_unit_origin = false
+    }
+    DCEI.AttachToUnit(container,tempUnit,options)
+    
+
+    local abilityFrame = DCEI.NewFrame(padding)
+    --DCEI.SetBackgroundImage(abilityFrame, "frame_slot00")
+    --DCEI.SetBackgroundImageColor(abilityFrame, 246, 225, 87, 255 / 255)
+    DCEI.SetMinSize(abilityFrame, DIALOG_X, DIALOG_Y)
+    local possibleXTargets = {35,-35, 0}
+    local targetXOffset = possibleXTargets[1+(relevantID % 3)]
+    local targetYOffset = 25
+    local animationDuration = 3
+    local animationType = "InOutCubic"
+    local titleText = DCEI.NewText(abilityFrame)
+    DCEI.SetText(titleText, text)
+    --DCEI.SetTopAlignmentInParent(titleText)
+    DCEI.SetVerticalOffsetInParent(titleText, -15)
+    DCEI.SetTextFontSize(titleText, 22)
+    DCEI.AnimateAlpha(abilityFrame,1,0,animationDuration,animationType)
+    DCEI.AnimateHorizontalOffset(titleText,0,targetXOffset,animationDuration,"OutSine")
+    DCEI.AnimateVerticalOffset(titleText,-15,targetYOffset,animationDuration,"OutSine")
+end
+
+
+function AnimateButtons()
+    --DCEI.LogMessage("Animating all buttons!")
+    foreach(animatedButtons, function(button)
+        DCEI.AnimateVerticalOffset(button,0,20,1.5, "InOutSine")
+    end)
+    DCEI.Wait(1.5)
+    foreach(animatedButtons, function(button)
+        DCEI.AnimateVerticalOffset(button,20,0,1.5, "InOutSine")
+    end)
+end
+
+function ShowConversation(conversation, conversationUnit)
+    --options = {offset = {up = .65, front = 0, right = .2}}
+    currentConversation = conversation
+    currentConversationUnit = conversationUnit
+    AdvanceConversation()
+    --DCEI.ShowSpeechBubble(conversationUnit,35,conversation[2],conversation[1],options)
+end
+
+function AdvanceConversation()
+    options = {offset = {up = .65, front = 0, right = .2}}
+    currentConversationStage = currentConversationStage + 1
+    DCEI.LogMessage("Advancing to convo stage>:"..currentConversationStage)
+    if(currentConversation[currentConversationStage] ~= nil) then
+        DCEI.HideSpeechBubble(currentConversationUnit)
+        DCEI.ShowSpeechBubble(currentConversationUnit,85,currentConversation[currentConversationStage],currentConversation[1],options)
+    else
+        DCEI.HideSpeechBubble(currentConversationUnit)
+        currentConversation.callback()
+        currentConversation = nil
+        currentConversationUnit = nil
+        currentConversationStage = 1
+    end
+end
+
+function OnAnyButtonClick()
+    if(currentConversation ~= nil) then
+        AdvanceConversation()
+    end
+end
+
+local confirmDialogBox = nil
+function ConfirmDialog(confirmTitle, confirmDesc, confirmButtonText,denyButtonText, onConfirmCallback,onDenyCallback)
+    if(confirmDialogBox ~= nil) then
+        DCEI.LogMessage("Denied showing confirm dialog box w/Title="..confirmTitle.." because a confirm box is showing already!")
+        return
+    end
+    if(confirmTitle == nil) then
+        confirmTitle = "Confirm?"
+    end
+    if(confirmDesc == nil) then
+        confirmDesc = "Are you sure?"
+    end
+    if(confirmButtonText == nil) then
+        confirmButtonText = "Confirm"
+    end
+    if(denyButtonText == nil) then
+        denyButtonText = "Cancel"
+    end
+    local container = DCEI.NewFrame(root)
+    confirmDialogBox = container
+    local dialogX = 425
+    local dialogY = 280
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "gradientBG")
+    DCEI.SetMatchParent(padding,true,true)
+    local background = DCEI.NewFrame(padding)
+    DCEI.SetBackgroundImage(background, "frame_slot00")
+    DCEI.SetBackgroundImageColor(background, 1, 1, 1, 255)
+    DCEI.SetMinSize(background, dialogX, dialogY)
+    DCEI.SetMaxSize(background, dialogX, dialogY)
+
+    local titleText = DCEI.NewText(background)
+    DCEI.SetText(titleText, "<color=yellow>"..confirmTitle)
+    DCEI.SetTopAlignmentInParent(titleText)
+    DCEI.SetVerticalOffsetInParent(titleText, -8)
+    DCEI.SetSize(titleText, dialogX-30,90)
+
+    titleText = DCEI.NewText(background)
+    DCEI.SetText(titleText, confirmDesc)
+    DCEI.SetTopAlignmentInParent(titleText)
+    DCEI.SetVerticalOffsetInParent(titleText, -90)
+    DCEI.SetMaxSize(titleText, dialogX-25, dialogY-100)
+    DCEI.SetTextFontSize(titleText,18)
+    
+    local button = DCEI.NewButton(background)
+    DCEI.SetBackgroundImage(button, "btn_blue2")
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetVerticalOffsetInParent(button, 15+50+20)
+    DCEI.SetMinSize(button, dialogX-25, 50)
+    DCEI.SetMaxSize(button, dialogX-25, 50)
+    local buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText, confirmButtonText)
+    DCEI.SetOnClickCallback(button, 
+    function()
+        onConfirmCallback()
+        DCEI.Destroy(container)
+        confirmDialogBox = nil
+    end)
+
+    button = DCEI.NewButton(background)
+    DCEI.SetBackgroundImage(button, "btn_red")
+    DCEI.SetBottomAlignmentInParent(button)
+    DCEI.SetVerticalOffsetInParent(button, 20)
+    DCEI.SetMinSize(button, dialogX-25, 50)
+    DCEI.SetMaxSize(button, dialogX-25, 50)
+    buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText, denyButtonText)
+    DCEI.SetOnClickCallback(button, 
+    function()
+        onDenyCallback()
+        DCEI.Destroy(container)
+        confirmDialogBox = nil
+    end)
+
+end
+
+function CreateEmbarkPanel()
+    local dialogX = 220
+    local dialogY = 100
+    local container = DCEI.NewFrame(root)
+    DCEI.SetRightAlignmentInParent(container)
+    --DCEI.SetRightAlignmentInParent(container)
+    DCEI.SetVerticalOffsetInParent(container, 0)
+
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "frame_inner_dark_grey")
+    DCEI.SetMinSize(padding, dialogX, dialogY)
+    DCEI.SetMaxSize(padding, dialogX, dialogY)
+    --DCEI.SetBackgroundImageColor(padding, 246, 225, 87, 200 / 255)
+    
+    local button = DCEI.NewButton(padding)
+    DCEI.SetVerticalOffsetInParent(button, 0)
+    DCEI.SetBackgroundImage(button, "btn_grey_blue")
+    DCEI.SetMinSize(button, dialogX-25, dialogY-25)
+    DCEI.SetMaxSize(button, dialogX-25, dialogY-25)
+
+    local buttonText = DCEI.NewText(button)
+    DCEI.SetText(buttonText, "Embark")
+    DCEI.SetHorizontalOffsetInParent(buttonText, 0)
+    DCEI.SetTextFontSize(buttonText, 25)
+
+    DCEI.SetOnClickCallback(button, function()
+        DCEI.Destroy(container)
+        ConfirmDialog("Recruitment Mission: Shadow Forest","This will begin a dungeon. Are you sure?","Let's Go!", "Go Back",function()
+            --DCEI.Wait(1)
+            DCEI.PlayLevel("ProjectCalico","Shadow Forest")
+        end,function()
+            
+        end)
+        
+    end)
+
+
+    --[[local goldIconFrame = DCEI.NewFrame(padding)
+    DCEI.SetLeftAlignmentInParent(goldIconFrame)
+    DCEI.SetHorizontalOffsetInParent(goldIconFrame, 20)
+    DCEI.SetVerticalOffsetInParent(goldIconFrame, 2)
+    DCEI.SetBackgroundImage(goldIconFrame, "icon_coin00")
+    DCEI.SetMinSize(goldIconFrame, 35, 35)
+    DCEI.SetMaxSize(goldIconFrame, 35, 35)
+
+    goldIndicatorText = DCEI.NewText(goldIconFrame)
+    DCEI.SetText(goldIndicatorText, "100")
+    DCEI.SetRightAlignmentInParent(goldIndicatorText)
+    DCEI.SetHorizontalOffsetInParent(goldIndicatorText, 90)
+    DCEI.SetTextFontSize(goldIndicatorText, 25)]]
+
+
+    
+    return {
+        frame = container,
+    }
+end
+
+function IsChestUnit(unit)
+    return string.match(DCEI.UnitName(unit), "Chest")
+end
+
+function OnUnitSelected()
+    local triggeringUnit = DCEI.TriggeringUnit
+    if(triggeringUnit ~= nil) then
+        DCEI.DeselectUnit(triggeringUnit)
+    end
+    if(IsChestUnit(triggeringUnit)) then
+        DCEI.LogMessage("A chest was opened!")
+    end 
+    
+    --DCEI.SelectUnit(DCEI.UnitNull)
+    --DCEI.DisableUnitSelection(triggeringUnit)
+end
+
+-- INITIALIZE
+DCEI.TriggerAddTimerEventElapsed(OnMapStart, 0)
+--CreateMainActionPanel()
+CreateMainDialog()
+InitializePersistentData()
+DCEI.TriggerAddUnitSelectedEvent(DCEI.UnitAny, OnUnitSelected)
+--MAIN_UI.SetZonePanelActive(false)
+--MAIN_UI.SetHomeButtonsActive(false)
+--DCEI.TriggerAddUnitSelectedEvent(DCEI.UnitAny,OnHeroUnitSelected)
+--DCEI.SetCameraVisibleAreaLength(10,true)
+--DCEI.SetCameraDistanceSmoothOvertime(2,3,true)
+--CreateWorldInteractables(expeditionNPC)
+
+--AnimateButtons()
+--DCEI.TriggerAddTimerEventPeriodicIndefinite(AnimateButtons, 3, true)
+--DCEI.TriggerAddMouseDownEvent(0, OnAnyButtonClick)

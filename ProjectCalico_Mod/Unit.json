@@ -1,0 +1,670 @@
+{
+    "units": {
+        "Archer": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.5,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 125,
+                    "startHealth": 125
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 1,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Archer Bow"
+                ],
+                "abilityList": [
+                    "Heavy Arrow"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Ranged"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Arrow Missile": {
+            "baseUnit": "_CMissile",
+            "components": {
+                "unitStats": {
+                    "immortal": true
+                }
+            }
+        },
+        "Berserker": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.5,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 175,
+                    "startHealth": 175
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 0.5,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Berserker Mace"
+                ],
+                "abilityList": [
+                    "Enrage"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Melee",
+                    "Berserker Rage Passive"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Blight Ogre": {
+            "baseUnit": "Footman",
+            "components": {
+                "unitStats": {
+                    "radius": 0.2,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 75,
+                    "startHealth": 75,
+                    "regeneration": 0
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Blight Ogre Smash"
+                ],
+                "behaviorList": [
+                    "Blight Cloud",
+                    "Armored"
+                ]
+            }
+        },
+        "Bone Archer": {
+            "baseUnit": "Footman",
+            "components": {
+                "unitStats": {
+                    "radius": 0.2,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 40,
+                    "startHealth": 40
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Bone Archer Bow"
+                ]
+            }
+        },
+        "Bone Warrior": {
+            "baseUnit": "Footman",
+            "components": {
+                "unitStats": {
+                    "radius": 0.2,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 25,
+                    "startHealth": 25
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Bone Warrior Sword"
+                ]
+            }
+        },
+        "Deathbolt Missile": {
+            "components": {
+                "unit": {
+                    "unitType": 1
+                },
+                "unitStats": {
+                    "radius": 0,
+                    "selectable": false
+                },
+                "health": {
+                    "maxHealth": 999
+                },
+                "behavior": {
+                    "behaviorType": 0
+                }
+            },
+            "displayName": "data/GameData/unit/_CMissile/display_name"
+        },
+        "Deathknight Boss": {
+            "baseUnit": "Footman",
+            "components": {
+                "unitStats": {
+                    "radius": 0.3
+                },
+                "health": {
+                    "maxHealth": 750,
+                    "startHealth": 750,
+                    "regeneration": 0
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Blight Ogre Smash"
+                ],
+                "behaviorList": [
+                    "Blight Cloud",
+                    "Armored"
+                ]
+            }
+        },
+        "Deathspeaker": {
+            "baseUnit": "Bone Archer",
+            "components": {
+                "unitStats": {
+                    "radius": 0.2,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 140,
+                    "startHealth": 140
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Deathspeaker Deathbolt"
+                ],
+                "abilityList": [
+                    "Deathcall"
+                ],
+                "behaviorList": [
+                    "Unholy Altar Spawning -- Deathspeaker",
+                    "Elite"
+                ]
+            }
+        },
+        "Fireball Missile": {
+            "components": {
+                "unit": {
+                    "unitType": 1
+                },
+                "unitStats": {
+                    "radius": 0,
+                    "selectable": false
+                },
+                "health": {
+                    "maxHealth": 999
+                },
+                "behavior": {
+                    "behaviorType": 0
+                }
+            },
+            "displayName": "data/GameData/unit/_CMissile/display_name"
+        },
+        "Footman": {
+            "baseUnit": "_CUnit",
+            "components": {
+                "unitStats": {
+                    "radius": 0.4,
+                    "selectable": false,
+                    "ignoreCollision": false
+                },
+                "health": {
+                    "maxHealth": 11,
+                    "startHealth": 11
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Footman Sword"
+                ],
+                "behaviorList": [
+                    "Melee"
+                ]
+            },
+            "healthBar": {
+                "type": 1
+            }
+        },
+        "Heavy Arrow Missile": {
+            "baseUnit": "_CMissile",
+            "components": {
+                "unitStats": {
+                    "immortal": true
+                },
+                "health": {
+                    "maxHealth": 50
+                }
+            },
+            "references": {
+                "behaviorList": [
+                    "Heavy Arrow Searcher",
+                    "Timed Life"
+                ]
+            }
+        },
+        "Ignite Dummy Unit": {
+            "components": {
+                "unitStats": {
+                    "immortal": false,
+                    "ground": false,
+                    "air": true,
+                    "selectable": false,
+                    "targetPriority": 0,
+                    "ignoreCollision": true
+                },
+                "health": {
+                    "maxHealth": 50,
+                    "startHealth": 50
+                }
+            },
+            "references": {
+                "behaviorList": [
+                    "Standard HelperTag",
+                    "Ignite DoT Searcher",
+                    "Timed Life (10)"
+                ]
+            }
+        },
+        "Item Caster Dummy": {
+            "components": {
+                "unitStats": {
+                    "radius": 0,
+                    "immortal": true,
+                    "ground": false,
+                    "selectable": false,
+                    "targetPriority": 0,
+                    "selectionPriority": -1,
+                    "ignoreCollision": true
+                },
+                "health": {
+                    "maxHealth": 540,
+                    "startHealth": 540
+                },
+                "mana": {
+                    "maxMana": 100,
+                    "startMana": 0,
+                    "regeneration": 0
+                }
+            },
+            "references": {
+                "abilityList": [
+                    "Health Potion",
+                    "Stealth Potion",
+                    "Bomb Brew",
+                    "Stun Potion",
+                    "Refresh Potion"
+                ],
+                "behaviorList": [
+                    "Standard HelperTag"
+                ]
+            },
+            "displayName": "data/GameData/unit/_StandardHelper/display_name"
+        },
+        "Legionnaire": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.5,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 180,
+                    "startHealth": 180
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 0.5,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Legion Sword"
+                ],
+                "abilityList": [
+                    "Legion's Call",
+                    "Inspire"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Armored",
+                    "Melee"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Point_Marker": {
+            "baseUnit": "_StandardHelper"
+        },
+        "Priest": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.55,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 125,
+                    "startHealth": 125
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 1.5,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Priest Condemn"
+                ],
+                "abilityList": [
+                    "Bless"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Ranged"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Priest Condemn Missile": {
+            "baseUnit": "_CMissile",
+            "components": {
+                "unitStats": {
+                    "immortal": true
+                }
+            }
+        },
+        "Pyromancer": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.5,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 135,
+                    "startHealth": 135
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 1.2,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Pyromancer Fireball"
+                ],
+                "abilityList": [
+                    "Ignite"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Ranged"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Rifleman": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.5,
+                    "selectable": true,
+                    "selectionPriority": 5
+                },
+                "health": {
+                    "maxHealth": 155,
+                    "startHealth": 155
+                },
+                "mana": {
+                    "maxMana": 10,
+                    "startMana": 10,
+                    "regeneration": 1,
+                    "regenerationDelay": 2
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 2
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 1,
+                    "resetRadius": 2
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Rifleman Rifle"
+                ],
+                "abilityList": [
+                    "Scattershot"
+                ],
+                "behaviorList": [
+                    "Ability Ready",
+                    "Heroic",
+                    "Ranged"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name",
+            "bindAbilityUi": false,
+            "healthBar": {
+                "type": 3,
+                "showWhenFull": true
+            }
+        },
+        "Scarab": {
+            "components": {
+                "unitStats": {
+                    "radius": 0.125,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 10
+                },
+                "movement": {
+                    "moveSpeed": 2
+                },
+                "turning": {
+                    "turningSpeed": 900
+                },
+                "behavior": {
+                    "behaviorType": 1
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 3,
+                    "resetRadius": 2
+                }
+            },
+            "displayName": "data/GameData/unit/_CUnit/display_name"
+        },
+        "Unholy Altar": {
+            "components": {
+                "unit": {
+                    "unitType": 2
+                },
+                "unitStats": {
+                    "radius": 0.45,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 50,
+                    "startHealth": 50,
+                    "regeneration": 1
+                },
+                "behavior": {
+                    "behaviorType": 4
+                }
+            },
+            "references": {
+                "behaviorList": [
+                    "Unholy Altar Spawning",
+                    "Structure"
+                ]
+            },
+            "displayName": "data/GameData/unit/_CBuilding/display_name",
+            "healthBar": {
+                "type": 1
+            }
+        },
+        "Warthog": {
+            "baseUnit": "Footman",
+            "components": {
+                "unitStats": {
+                    "radius": 0.2,
+                    "selectable": true,
+                    "ignoreCollision": false
+                },
+                "health": {
+                    "maxHealth": 60,
+                    "startHealth": 60
+                },
+                "mana": {
+                    "maxMana": 1,
+                    "startMana": 1
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 15,
+                    "engageRadius": 15,
+                    "resetRadius": 15
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Warthog Bite"
+                ],
+                "abilityList": [
+                    "Warthog Charge"
+                ]
+            },
+            "bindAbilityUi": false
+        }
+    }
+}

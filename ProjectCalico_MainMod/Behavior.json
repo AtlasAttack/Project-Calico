@@ -1,0 +1,354 @@
+{
+    "behaviors": {
+        "Ability Ready": {
+            "behaviorValidatorsDisable": [
+                "CasterUnit Less than 10 Energy",
+                "Is Not A Hero",
+                "TargetUnit Is Stunned",
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Ablaze": {
+            "alignment": 2,
+            "refreshStack": true,
+            "maxStackCount": 1,
+            "duration": 5.5,
+            "startEffect": "Ablaze DoT",
+            "periodicInterval": 1,
+            "periodicEffect": "Ablaze DoT",
+            "periodicEffectCount": 3,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": -0.5
+                }
+            },
+            "damageResponse": {
+                "fatalOnly": true
+            },
+            "deathResponse": {
+                "chance": 1,
+                "effect": "Ablaze Combust Search",
+                "targetType": 1
+            }
+        },
+        "Absolute Focus": {
+            "maxStackCount": 1,
+            "behaviorValidatorsDisable": [
+                "CasterUnit Life LT 100%"
+            ],
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Armored": {
+            "alignment": 1,
+            "maxStackCount": 3,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.3
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.3
+                }
+            },
+            "damageResponse": {
+                "chance": 1
+            }
+        },
+        "Berserker Rage Passive": {
+            "behaviorValidatorsDisable": [
+                "SourceUnit Within BerserkerLifeRange"
+            ],
+            "modifiers": {
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.5
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.5
+                }
+            }
+        },
+        "Blight Cloud": {
+            "periodicInterval": 1,
+            "periodicEffect": "Blight Cloud Search"
+        },
+        "Deathcaller AI Behavior": {
+            "periodicInterval": 11,
+            "periodicEffect": "AI_Cast_Deathcall",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Difficulty Mod": {
+            "maxStackCount": 100,
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.02
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.01
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Elite": {
+            "deathResponse": {
+                "chance": 1,
+                "effect": "OnEliteDeath",
+                "targetType": 3
+            }
+        },
+        "Enrage Buff": {
+            "duration": 14,
+            "startEffect": "Recently Inspired (Dummy)",
+            "modifiers": {
+                "maxShieldModifier": {
+                    "unscaled": 55,
+                    "additiveFactor": 0
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.3
+                }
+            }
+        },
+        "Fiery Focus": {
+            "maxStackCount": 1,
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
+        "Fleetfoot": {
+            "maxStackCount": 1,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.3
+                }
+            }
+        },
+        "Giantslayer": {
+            "refreshStack": false,
+            "maxStackCount": 3,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.1
+                }
+            }
+        },
+        "Heavy Arrow Searcher": {
+            "startEffect": "Heavy Arrow Search",
+            "periodicInterval": 0.001,
+            "periodicEffect": "Heavy Arrow Search"
+        },
+        "Heroic": {
+            "unitModifier": {
+                "targetBehaviorType": 0
+            }
+        },
+        "Ignite DoT Searcher": {
+            "startEffect": "Ignite Search Area",
+            "periodicInterval": 1,
+            "periodicEffect": "Ignite Search Area"
+        },
+        "Improved Armor": {
+            "maxStackCount": 10,
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": -0.05
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": -0.05
+                }
+            }
+        },
+        "Improved Weapons": {
+            "maxStackCount": 10,
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Inspire Shield": {
+            "duration": 10,
+            "startEffect": "Recently Inspired (Dummy)",
+            "modifiers": {
+                "maxShieldModifier": {
+                    "unscaled": 40,
+                    "additiveFactor": 0
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Last Stand": {
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.5
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.5
+                }
+            }
+        },
+        "Level Persist": {},
+        "Melee": {},
+        "Paused": {
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": false
+                }
+            }
+        },
+        "Persistence": {
+            "modifiers": {
+                "healthRegenerationModifier": {
+                    "scaled": 1
+                }
+            }
+        },
+        "Powercharged": {
+            "maxStackCount": 1,
+            "duration": 3.25,
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": 0
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": 0
+                }
+            }
+        },
+        "Ranged": {},
+        "Recently Damaged by Heavy Arrow": {
+            "duration": 1
+        },
+        "Steadfast": {},
+        "Stealth": {
+            "duration": 4,
+            "modifiers": {
+                "flags": {
+                    "stealth": true
+                }
+            }
+        },
+        "Structure": {
+            "alignment": 1,
+            "maxStackCount": 1
+        },
+        "Stun": {
+            "duration": 3,
+            "behaviorValidatorsRemove": [
+                "TargetUnit Is Steadfast"
+            ],
+            "modifiers": {
+                "flags": {
+                    "suppressMovement": true,
+                    "suppressWeapon": true,
+                    "suppressAbility": true,
+                    "suppressTurning": true
+                }
+            }
+        },
+        "Team Discipline": {
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
+        "Timed Life": {
+            "alignment": 2,
+            "maxStackCount": 1,
+            "periodicInterval": 1.5,
+            "periodicEffect": "Timed Life Damage"
+        },
+        "Timed Life (10)": {
+            "duration": 10,
+            "finalEffect": "Remove Caster"
+        },
+        "Timed Life (20)": {
+            "duration": 20,
+            "finalEffect": "Remove Caster"
+        },
+        "Unholy Altar Spawning": {
+            "periodicInterval": 10,
+            "periodicEffect": "Unholy Altar Spawn Persistent",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Unholy Altar Spawning -- Deathspeaker": {
+            "periodicInterval": 18,
+            "periodicEffect": "Unholy Altar Spawn Persistent",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
+        "Unselectable": {},
+        "Vulnerable": {
+            "maxStackCount": 10,
+            "duration": 8,
+            "modifiers": {
+                "weaponDamageTakenModifier": {
+                    "multiplierFactor": 0.05
+                },
+                "abilityDamageTakenModifier": {
+                    "multiplierFactor": 0.05
+                }
+            }
+        },
+        "Warthog Charging": {
+            "duration": 4,
+            "modifiers": {
+                "flags": {
+                    "invulnerable": true,
+                    "suppressWeapon": true
+                },
+                "moveSpeedModifier": {
+                    "multiplierFactor": 2
+                }
+            }
+        }
+    }
+}

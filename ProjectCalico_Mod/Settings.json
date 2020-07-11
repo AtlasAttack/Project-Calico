@@ -1,0 +1,73 @@
+{
+    "settings": {
+        "version": "0.0.6",
+        "type": 0,
+        "dependencies": [
+            "Arcade/Core"
+        ],
+        "transitionMaps": [
+            "ProjectCalicoHub"
+        ]
+    },
+    "musicSettings": {
+        "musicNames": [
+            "Battle2"
+        ]
+    },
+    "triggerSettings": {
+        "usedUnits": [
+            "Archer",
+            "Legionnaire",
+            "Priest",
+            "Pyromancer",
+            "Item Caster Dummy",
+            "Bone Archer",
+            "Blight Ogre",
+            "Bone Warrior",
+            "Warthog",
+            "Unholy Altar",
+            "Berserker",
+            "Rifleman",
+            "Deathspeaker"
+        ],
+        "usedEffects": [
+            "[Sound] Gold Collect",
+            "[Sound] Battle Won",
+            "[Sound] Battle Start",
+            "[Sound] Perk Earned",
+            "[Sound] Run Succeeded"
+        ],
+        "usedBehaviors": [
+            "Paused",
+            "Vulnerable",
+            "Heroic",
+            "Difficulty Mod",
+            "Stealth",
+            "Improved Armor",
+            "Improved Weapons",
+            "Fiery Focus",
+            "Ranged",
+            "Melee",
+            "Steadfast",
+            "Team Discipline",
+            "Last Stand",
+            "Giantslayer",
+            "Armored",
+            "Powercharged",
+            "Fleetfoot",
+            "Absolute Focus"
+        ],
+        "usedAtlasAssets": [
+            "stealthEye",
+            "partyDiscipline",
+            "relicScavenging",
+            "eliteFightIcon",
+            "powerBarFill",
+            "powerBarBackground",
+            "resurrect",
+            "campsite",
+            "chronoPotion",
+            "focus"
+        ]
+    }
+}

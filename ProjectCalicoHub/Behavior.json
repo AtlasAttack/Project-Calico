@@ -1,0 +1,9 @@
+{
+    "behaviors": {
+        "Chest Enter Effect": {
+            "duration": 0.3,
+            "startEffect": "Chest Appear",
+            "finalEffect": "ChestAppearImpact"
+        }
+    }
+}

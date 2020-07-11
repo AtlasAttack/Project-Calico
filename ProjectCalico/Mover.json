@@ -1,0 +1,24 @@
+{
+    "movers": {
+        "Archer Missile Mover": {
+            "ballistic": {
+                "speed": 25
+            }
+        },
+        "Heavy Arrow Mover": {
+            "ballistic": {
+                "speed": 14
+            }
+        },
+        "Slower Missile Mover": {
+            "ballistic": {
+                "speed": 17
+            }
+        },
+        "Warthog Charge Mover": {
+            "ballistic": {
+                "speed": 0.15
+            }
+        }
+    }
+}
