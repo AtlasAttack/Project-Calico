@@ -70,7 +70,15 @@
             ]
         },
         "AffinityBonus_Brawler": {
-            "startEffect": "Apply 5 Block"
+            "startEffect": "Apply 7 Block",
+            "modifiers": {
+                "moveSpeedModifier": {
+                    "multiplierFactor": 0.15
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.15
+                }
+            }
         },
         "AffinityBonus_Holy": {
             "behaviorValidatorsDisable": [
@@ -96,11 +104,15 @@
             }
         },
         "AffinityBonus_Trickster": {
-            "periodicInterval": 10,
-            "periodicEffect": "Apply Trickster AB Stealth",
             "behaviorValidatorsDisable": [
-                "TargetUnit Is Paused"
-            ]
+                "TargetUnit Is Paused",
+                "No Nearby Visible Units"
+            ],
+            "modifiers": {
+                "flags": {
+                    "stealth": true
+                }
+            }
         },
         "Alchemist Focus": {
             "behaviorValidatorsDisable": [
@@ -774,6 +786,19 @@
                 },
                 "moveSpeedModifier": {
                     "multiplierFactor": 2
+                }
+            }
+        },
+        "AffinityBonusDamage": {
+            "modifiers": {
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.1
                 }
             }
         }

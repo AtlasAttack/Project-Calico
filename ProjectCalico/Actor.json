@@ -8177,8 +8177,59 @@
                 },
                 {
                     "actorTerm": {
+                        "behaviorOn": {
+                            "behavior": "AffinityBonus_Trickster"
+                        }
+                    },
+                    "actions": [
+                        {
+                            "setTintColor": {
+                                "color": {
+                                    "r": 144,
+                                    "g": 130,
+                                    "b": 216
+                                }
+                            }
+                        },
+                        {
+                            "setMeshEffect": {
+                                "effect": "Stealth"
+                            }
+                        },
+                        {
+                            "applyMeshEffect": {
+                                "effect": "Stealth"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
                         "behaviorOff": {
                             "behavior": "Stealth"
+                        }
+                    },
+                    "actions": [
+                        {
+                            "setTintColor": {
+                                "color": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                }
+                            }
+                        },
+                        {
+                            "removeMeshEffect": {
+                                "effect": "Stealth"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "behaviorOff": {
+                            "behavior": "AffinityBonus_Trickster"
                         }
                     },
                     "actions": [

@@ -357,7 +357,7 @@
                 "debugDraw": false,
                 "areaSearchType": {
                     "circle": {
-                        "radius": 0.85
+                        "radius": 0.95
                     }
                 },
                 "maxUnitCount": 4,
@@ -1540,6 +1540,13 @@
                     "DoNothing"
                 ],
                 "terminateOnPeriodicEffectSuccess": true
+            }
+        },
+        "Apply 7 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 7
             }
         }
     }

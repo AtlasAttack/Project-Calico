@@ -102,7 +102,8 @@
             "AffinityBonus_Spellcaster",
             "Bleed",
             "Regrowth Healing",
-            "Taunt"
+            "Taunt",
+            "AffinityBonusDamage"
         ],
         "usedAtlasAssets": [
             "stealthEye",
@@ -134,7 +135,8 @@
             "affinityPyro",
             "icon_spellshield",
             "hero_activeInfo",
-            "affinityEmptyIcon"
+            "affinityEmptyIcon",
+            "affinityBonus"
         ],
         "usedSpriteAssets": [
             "btn_rounded01"

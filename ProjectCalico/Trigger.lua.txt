@@ -182,12 +182,14 @@ local AFFINITIES = {
     Affinity("Aqua","Aqua units deal extra damage to Pyro units, but take additional damage from Naturalist units.","affinityAqua",3,"All water damage is increased by 40%."),
     Affinity("Armored","Armored units take 30% less damage from all sources.","affinityArmored",3,"Your Armored heroes gain a permanent Spellshield. Additionally, your Armored units gain 1 Block every 6 seconds."),
     Affinity("Spellcaster","Spellcasters start with their abilities ready and their abilities recharge 25% faster.","affinitySpellcaster",3,"Spellcasters cast and recharge abilities twice as fast."),
-    Affinity("Brawler","Brawlers move and attack 15% faster.","affinityBrawler",3,"All Brawlers start combat with 5 Block."),
+    Affinity("Brawler","Brawlers move and attack 15% faster.","affinityBrawler",3,"All Brawlers start combat with 7 Block, and their movement and attack speed bonuses are doubled."),
     Affinity("Holy","Holy units deal 25% bonus damage to Undead units.","affinityHoly",3,"All Holy units restore 2 health per second while their ability is on cooldown."),
-    Affinity("Trickster","Tricksters deal +50% damage while stealthed.","affinityTrickster",1,"Your Trickster becomes Stealthed for 2 seconds, every 10 seconds.",true),
+    Affinity("Trickster","Tricksters deal +50% damage while stealthed.","affinityTrickster",1,"Your Trickster becomes permanently Stealthed as long as there are at least 3 heroes on the field.",true),
     Affinity("Ranger","Rangers have unlimited attack range.","affinityRanger",2,"Your Ranger's attacks apply 1 stack of Poison.",true),
     Affinity("Specialist","All Specialists gain the Mobile trait, and can be ordered to move during combat.","affinitySpecialist",2,"Units adjacent to a Specialist at the start of combat also become Mobile."),
-
+    
+    
+    Affinity("Bonus","For each Affinity bonus you have, your entire team gains +10% damage dealt.","affinityBonus",0,"",false),
 }
 
 local affinityTokens = {} --Stores a list of affinity (Strings) that count toward affinity bonuses without the player needing to have a hero of that type.
@@ -235,7 +237,7 @@ local recentElitesKilled = 0
 local doublePower = false
 local hexGrid = {}
 local occupiedHexs = {}
-
+local willBeAmbushed = false
 local threatLevel = 0 --(Can be 0-200, represents a %.)
 math.randomseed( os.time() )
 -- TRIGGERS
@@ -291,6 +293,18 @@ function round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)
     return math.floor(num * mult + 0.5) / mult
   end
+
+function PartyHasHero(heroType)
+    --DCEI.LogMessage("Checking for unit type in party:"..heroType.name)
+    for index=1,PARTY_SIZE do
+        local pUnit = partyUnits[index]
+        --DCEI.LogMessage("      ["..(index).."] Recognized unit type in party:"..pUnit)
+        if(pUnit == heroType.name) then
+            return true
+        end
+    end
+    return false
+end
 
   
 function GetAdjacentHeroUnits(sourceUnit)
@@ -1661,6 +1675,7 @@ end
 
 function ExpectTarget(unit, abilityToUse)
     ClearTargetingMode()
+    ShowRelevantText("O")
     targetingModeActive = true
     DCEI.SetUpdateFrequency(0.25)
     DCEI.ShowSlowMotionEffect()
@@ -1907,7 +1922,10 @@ function OnBattleFinished(win)
         ClearTargetingMode()
     end
     if(win == true) then
-        roomsCleared = roomsCleared + 1
+        if(willBeAmbushed == false) then
+            roomsCleared = roomsCleared + 1
+        end
+        willBeAmbushed = false
         if(roomsCleared == 1) then
             if(settings.helpTips == true) then
                 DCEI.ShowMessageWithButtonText("Team Experience", "Whenever a hero has their ability ready, they will periodically generate <color=purple>team experience.</color>\n\nOnce your team reaches 100% team experience, you will gain a free perk which will increase the strength of your team for the rest of the run!", "Got it!")  
@@ -1922,7 +1940,7 @@ function OnBattleFinished(win)
         end
         DCEI.ShowSlowMotionEffect()
         DCEI.Wait(1)
-        DCEI.ShowFeedbackMessage("<size=30>Victory!")
+        DCEI.ShowFeedbackMessage("<size=45>Victory!")
         --core.FadeOut(2)
         PlaySound("[Sound] Battle Won")
         DCEI.Wait(3)
@@ -2099,7 +2117,12 @@ end
 function GetRandomChoosableHeroes()
     local possibleChoices = {}
     for index = 1, GetTableSize(HERO_TYPES) do
-        table.insert(possibleChoices, index) --Add every possible index as a potential choice.
+        if(PartyHasHero(HERO_TYPES[index]) == false or RandomChance(30)) then
+            table.insert(possibleChoices, index) --Add every possible index as a potential choice.
+        else
+            DCEI.LogMessage("Will not add hero type: "..HERO_TYPES[index].name.." to the hero pool because the player already has a hero of that type!")
+        end
+        
     end
     local returnValue = {}
     for choiceIndex = 1, 3 do --Choose 3 heroes
@@ -2459,12 +2482,19 @@ function CreateAffinityFrame()
                 DCEI.SetBackgroundImageColor(affinityButton,1,1,1,225/255)
                 DCEI.SetTooltipText(affinityButton,tooltipText)
                 DCEI.SetText(affinity.countText,GetAffinCountText(affinCount,affinity))
-            else
+            elseif(affinity.name ~= "Bonus") then
                 DCEI.SetBackgroundImageGrayScale(affinityButton,true)
                 DCEI.SetBackgroundImageColor(affinityButton,1,1,1,140/255)
                 DCEI.SetTooltipText(affinityButton,tooltipText)
                 DCEI.SetText(affinity.countText,GetAffinCountText(affinCount,affinity))
             
+            else
+                --Bonus Affinity
+                DCEI.SetBackgroundImageGrayScale(affinityButton, affinCount == 0)
+                DCEI.SetBackgroundImageColor(affinityButton,1,1,1,225/255)
+                DCEI.SetTooltipText(affinityButton,HighlightKeywords(affinity.passiveDescription))
+                DCEI.SetText(affinity.countText,affinCount)
+                DCEI.SetTextFontSize(affinity.countText, 19)
             end
             
     
@@ -2538,8 +2568,9 @@ function OnItemSelected(slot)
     DCEI.LogMessage("OnItemSelected called for slot: "..slot)
     local itemInSlot = inventory[slot]
     if(itemInSlot ~= nil) then
-        DCEI.EnterTargetingMode(ITEM_CASTER, itemInSlot.name)
-        targetingModeActive = true
+        ExpectTarget(ITEM_CASTER,itemInSlot.name)
+        --[[DCEI.EnterTargetingMode(ITEM_CASTER, itemInSlot.name)
+        targetingModeActive = true]]
     end
 end
 
@@ -2547,7 +2578,7 @@ function OnItemUsed(itemName)
     for inventoryID = 1, BUTTON_COUNT do
         local itemInSlot = inventory[inventoryID]
         if(itemInSlot ~= nil and itemInSlot.name == itemName) then
-            DCEI.LogMessage("OnItemUsed called for slot: "..inventoryID.." with item name: "..itemName)
+            --DCEI.LogMessage("OnItemUsed called for slot: "..inventoryID.." with item name: "..itemName)
             inventory[inventoryID].count = itemInSlot.count - 1
             UpdateInventoryUI()
         end
@@ -3319,10 +3350,10 @@ end
 
 --Called when heroes are spawned in but before battle begins. Handles any perks/affinities that should be executed before combat start.
 function ApplyPreBattlePerks()
-    DCEI.LogMessage("Applying pre-battle perks!")
+    --DCEI.LogMessage("Applying pre-battle perks!")
     foreach(playerPerks,function(perk)
         if(perk.name == "Grit") then
-            DCEI.LogMessage("Applying pre-battle perk: GRIT!")
+            --DCEI.LogMessage("Applying pre-battle perk: GRIT!")
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit) and (DCEI.UnitName(partyUnit) == "Berserker" or DCEI.UnitName(partyUnit) == "Rifleman")) then
                     DCEI.LogMessage("(Grit) Applying Armored behavior to unit:"..DCEI.UnitName(partyUnit))
@@ -3334,7 +3365,7 @@ function ApplyPreBattlePerks()
         end
 
     end)
-    DCEI.LogMessage("Finished applying pre-battle perks!")
+    --DCEI.LogMessage("Finished applying pre-battle perks!")
 end
 
 -- Called at the start of every battle, applies any behavior/battle specific perks.
@@ -3343,7 +3374,7 @@ function ApplyBattlePerks()
     foreach(AFFINITIES, function(affinity)
         if(affinity.bonusActive == true) then
             if(affinity.name == "Specialist") then
-                DCEI.LogMessage("Applying specialist bonus perk!")
+                --DCEI.LogMessage("Applying specialist bonus perk!")
                 foreach(party,function(partyUnit)
                     if(UnitIsAlive(partyUnit) and DCEI.UnitBehaviorStackCount(partyUnit, affinity.name) >= 1) then
                         local nearby = GetAdjacentHeroUnits(partyUnit)
@@ -3356,12 +3387,22 @@ function ApplyBattlePerks()
             end
 
             if(affinity.name == "Naturalist") then
-                DCEI.LogMessage("Applying naturalist bonus perk!")
+                --DCEI.LogMessage("Applying naturalist bonus perk!")
                 local spawnPoint = GetClosestHexPointToPoint(GetRandomHeroPosition(),true)
                 DCEI.CreateUnitWithFacing(1, 1, "Armored Golem", spawnPoint.x, spawnPoint.y, enemySpawnPoints[1].x, enemySpawnPoints[1].y)
             end
         end
-        
+        local count = GetAffinityCount(affinity)
+        if(affinity.name == "Bonus" and count > 0) then
+            
+            foreach(party,function(partyUnit)
+                if(UnitIsAlive(partyUnit)) then
+                    
+                    DCEI.ApplyBehaviorCount(partyUnit, "AffinityBonusDamage", count)
+                    --DCEI.LogMessage("Applying "..count.." xAffinity Bonus damage to hero: "..DCEI.UnitName(partyUnit))
+                end
+            end)
+        end
     end)
 
     if(lastStandActive) then
@@ -3517,10 +3558,10 @@ function UpdateActiveAffinities()
         --tooltipText = HighlightKeywords(tooltipText)
         --DCEI.LogMessage("Got TT text for affinity:"..tooltipText)
         local affinCount = GetAffinityCount(affinity)
-        DCEI.LogMessage("Got affinity count:"..affinCount.." for affinity: "..affinity.name)
-        if(affinCount >= 1) then
+        --DCEI.LogMessage("Got affinity count:"..affinCount.." for affinity: "..affinity.name)
+        if(affinCount >= 1 or (affinity.name == "Bonus" and roomsCleared >= 1)) then
             affinity.isActive = true
-            if(affinCount == affinity.requiredCount or (affinCount >= affinity.requiredCount and affinity.requireExactCount == false))then
+            if((affinCount == affinity.requiredCount or (affinCount >= affinity.requiredCount and affinity.requireExactCount == false)) and affinity.name ~= "Bonus") then
                 affinity.bonusActive = true
             else
                 affinity.bonusActive = false
@@ -3548,12 +3589,12 @@ function ApplyAffinityBonuses()
     foreach(AFFINITIES, function(affinity) 
         if(affinity.bonusActive) then
             foreach(party, function(hero)
-                if(UnitIsAlive(hero) and DCEI.UnitBehaviorStackCount(hero, affinity.name) > 0) then
+                if(UnitIsAlive(hero) and DCEI.UnitBehaviorStackCount(hero, affinity.name) > 0 and affinity.name ~= "Bonus") then
                     if(affinity.hasDedicatedBehavior == true) then
                         DCEI.ApplyBehaviorCount(hero, "AffinityBonus_"..affinity.name)
                     end
                     
-                    DCEI.LogMessage("Applying affinity bonus to unit: "..DCEI.UnitName(hero))
+                    --DCEI.LogMessage("Applying affinity bonus to unit: "..DCEI.UnitName(hero))
                 end
             end)
         end
@@ -3563,6 +3604,14 @@ end
 
 function GetAffinityCount(affinity)
     local returnCount = 0
+    if(affinity.name == "Bonus") then
+        foreach(AFFINITIES, function(affinity) 
+            if(affinity.bonusActive and affinity.name ~= "Bonus") then
+                returnCount = returnCount + 1
+            end
+        end)
+        return returnCount
+    end
     foreach(affinityTokens, function(tokenName)
         if(tokenName == affinity.name) then
             returnCount = returnCount + 1
@@ -4896,7 +4945,7 @@ function OnRoomEnter(value)
     FadeScreen(false,1.0)
     --DCEI.Wait(1.0)
     if(HasRoomBeenVisited(value)) then
-        local willBeAmbushed = RandomChance(GetAmbushChance())
+        willBeAmbushed = RandomChance(GetAmbushChance())
         if(willBeAmbushed) then
             GenerateEncounter((currentDungeonLevel * 0.7), nil, false, true)
             CreateCombatDialog()
@@ -5104,9 +5153,9 @@ DCEI.TriggerAddEffectEvent("AI_WitchHex", AICastWitchHex)
 DCEI.TriggerAddTextCommandEvent(OnCheatEntered)
 DCEI.TriggerAddUnitSpawnEvent(DCEI.UnitAny, function()
     local tUnit = DCEI.TriggeringUnit
-    DCEI.LogMessage("Got Unit spawn name:"..DCEI.UnitName(tUnit))
+    --DCEI.LogMessage("Got Unit spawn name:"..DCEI.UnitName(tUnit))
     if(IsHelperUnit(tUnit) == false and DCEI.GetUnitTeamId(tUnit) == -1 and DCEI.UnitType(tUnit) == "Unit") then
-        DCEI.LogMessage("Creating Unit Bar for:"..DCEI.UnitName(tUnit))
+        --DCEI.LogMessage("Creating Unit Bar for:"..DCEI.UnitName(tUnit))
         CreateUnitBar(tUnit,true)
     end
 end,true)
@@ -5220,8 +5269,8 @@ function OnMapStart()
         local createdUnit = DCEI.CreateUnitWithFacing(1, 1, heroObject.name, emptyPoint.x, emptyPoint.y, 0, 0)
         ExecuteAfter(function()
             foreach(AFFINITIES, function(affinity)
-                if(DCEI.UnitBehaviorStackCount(createdUnit, affinity.name) >= 1) then
-                    DCEI.LogMessage("Recognized affinity: "..affinity.name.." on hero: "..heroObject.name)
+                if(affinity.name ~= "Bonus" and DCEI.UnitBehaviorStackCount(createdUnit, affinity.name) >= 1) then
+                    --DCEI.LogMessage("Recognized affinity: "..affinity.name.." on hero: "..heroObject.name)
                     table.insert(heroObject.affinities, affinity)
                     DCEI.RemoveUnit(createdUnit)
                 end
