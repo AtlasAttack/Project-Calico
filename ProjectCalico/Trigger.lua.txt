@@ -19,6 +19,10 @@ function EnemyIsElite(enemyLink)
     return enemyLink.flags ~= nil and enemyLink.flags.elite == true
 end
 
+function EnemyIsNightmare(enemyLink)
+    return enemyLink.flags ~= nil and enemyLink.flags.nightmare == true
+end
+
 function Affinity(affinityName, affinityPassiveText,affinityIcon, affinityRequiredBonusCount, affinityBonusText, requireExactCount, affinityHasDedicatedBehavior)
     local needsExactNum = false
     if(requireExactCount ~= nil) then
@@ -169,6 +173,7 @@ GamePerk("Fiery Focus","Reduces the cooldown of the Pyromancer ability by 20%.",
 local forcedPerkOffering = nil
 local playerPerks = {} --Table w/ Perks the player has currently.
 local map = {}
+local roomDifficulty = {}
 local clearedRooms = {}
 local exploredRooms = {}
 
@@ -189,7 +194,8 @@ local AFFINITIES = {
     Affinity("Specialist","All Specialists gain the Mobile trait, and can be ordered to move during combat.","affinitySpecialist",2,"Units adjacent to a Specialist at the start of combat also become Mobile."),
     
     
-    Affinity("Bonus","For each Affinity bonus you have, your entire team gains +10% damage dealt.","affinityBonus",0,"",false),
+    Affinity("Bonus","For each Affinity bonus you have, your team gains +20% damage dealt.","affinityBonus",0,"",false),
+    Affinity("Nightmare","Each time you encounter a Nightmare boss, all future Nightmare enemies gain +10% damage dealt.","affinityNightmare",1,"",false),
 }
 
 local affinityTokens = {} --Stores a list of affinity (Strings) that count toward affinity bonuses without the player needing to have a hero of that type.
@@ -208,7 +214,7 @@ EnemyType("Bone Archer",3,"Ranged attacker. Deals triple damage to non-armored u
  EnemyType("Greater Malevolent Ooze",12,"Can duplicate itself. Also constantly poisons  nearby enemies."),
  EnemyType("Deranged Warthog",10,"High-damage melee unit. At the start of combat, charges to the furthest enemy and stuns them for 4 seconds."),
  EnemyType("Warthog",6,"High-damage melee unit. At the start of combat, charges to the furthest enemy and stuns them for 4 seconds."),
-
+ EnemyType("Nightmare Abomination",25,"A Nightmare Abomination.", {nightmare = true}),
 }
 
  local HERO_TYPES = {
@@ -266,8 +272,8 @@ function InitializeMapGenSettings()
     elseif(dungeonData.difficulty >= 5) then
         mapGenSize = 3
     end
-    difficultyScaleFactor = dungeonData.difficulty * 0.25
-    difficultyScaleFactor = Clamp(difficultyScaleFactor,0.25,2)
+    difficultyScaleFactor = dungeonData.difficulty * 0.20
+    difficultyScaleFactor = Clamp(difficultyScaleFactor,0.20,2)
 end
 DCEI.SetTooltipBackgroundImage("frame_dark_stroke")
 InitializeMapGenSettings()
@@ -675,7 +681,7 @@ function GetRoomType(roomID)
 end
 
 function IsRoomExplored(roomID)
-    return TableContains(exploredRooms,roomID)
+    return TableContains(exploredRooms,roomID) or GetRoomType(roomID) == "Nightmare"
 end
 
 function GetTotalRoomCount()
@@ -729,6 +735,19 @@ function HasAdjacentRooms(sourceRoomID, sourceMap)
     if(TableContains(sourceMap,GetRoomInDirection(sourceRoomID,"Down"))) then return true end
     if(TableContains(sourceMap,GetRoomInDirection(sourceRoomID,"Left"))) then return true end
     if(TableContains(sourceMap,GetRoomInDirection(sourceRoomID,"Right"))) then return true end
+    return false
+end
+
+function HasAdjacentRoomOfType(sourceRoomID,searchType, sourceMap)
+    if(sourceMap == nil) then sourceMap = map end
+    local adjacentRooms = GetAllPossibleAdjacentRooms(sourceRoomID)
+    foreach(adjacentRooms, function(room)
+        if(TableContains(sourceMap,room)) then
+            if(GetRoomType(room) == searchType) then
+                return true
+            end
+        end
+    end)
     return false
 end
 
@@ -812,7 +831,7 @@ function GenerateMap(floorID)
     local isTopFloor = floorID == currentDungeonFloors
     local returnList = {}
     local possibleRooms = {}
-    threatLevel = (threatLevel / 2)
+    threatLevel = math.ceil(threatLevel * 0.6)
     
     for index = 1, 25 do
         table.insert(possibleRooms,index)
@@ -1003,7 +1022,7 @@ function GenerateMap(floorID)
     end
 
     foreach(returnList, function(room)
-        if(room ~= topRoom and room ~= starterRoom and AreRoomsAdjacent(room,starterRoom) == false and IsEdgeRoom(room) and ((room >= 6 and room <= 20) or RandomChance(30)) and RandomChance(15+(floorID * 10))) then
+        if(room ~= topRoom and room ~= starterRoom and AreRoomsAdjacent(room,starterRoom) == false and IsEdgeRoom(room) and ((room >= 6 and room <= 20) or RandomChance(25)) and RandomChance(15+(floorID * 10))) then
             SetRoomType(room, "Treasure")
         elseif(room ~= topRoom and room ~= starterRoom and AreRoomsAdjacent(room,starterRoom) == false and IsEdgeRoom(room) and room >= 6 and room <= 20 and RandomChance(10+(5*floorID))) then
             SetRoomType(room, "Elite")
@@ -1023,6 +1042,43 @@ function GenerateMap(floorID)
     SetRoomType(starterRoom,"Start")
     currentRoom = starterRoom
     ExploreRoom(starterRoom)
+    foreach(returnList, function(roomID)
+        if(GetRoomType(roomID) == "Elite" and floorID == 1 and dungeonData.difficulty <= 5) then
+            SetRoomType(roomID,"Combat") 
+        end
+        if(GetRoomType(roomID) == "Treasure" and HasAdjacentRoomOfType(roomID,"Treasure",returnList) == true) then
+            if(RandomChance(20+(dungeonData.difficulty*3))) then
+                SetRoomType(roomID,"Elite")
+            else
+                SetRoomType(roomID,"Combat") 
+            end
+            
+        end
+        if(GetRoomType(roomID) == "Shop" and HasAdjacentRoomOfType(roomID,"Shop",returnList)) then
+            if(RandomChance(10+(dungeonData.difficulty*3))) then
+                SetRoomType(roomID,"Elite")
+            else
+                SetRoomType(roomID,"Combat")
+            end
+            
+        end
+        if(GetRoomType(roomID) == "Combat" or GetRoomType(roomID) == "Elite") then
+            local difficultyLevel = GetRandomNumber(1,8)
+            if(AreRoomsAdjacent(topRoom,roomID)) then
+                difficultyLevel = difficultyLevel + 3
+            end
+            if(GetRoomType(roomID) == "Elite") then
+                difficultyLevel = 12
+            end
+            roomDifficulty[roomID] = difficultyLevel
+            DCEI.LogMessage("Set difficulty of room:"..roomID.." to:"..difficultyLevel)
+            
+        else
+            
+            roomDifficulty[roomID] = 0
+        end
+    
+    end)
     if(GetRoomCount("Stairs") < 1 and isTopFloor == false) then
         SetRoomType(topRoom,"Stairs")
         --DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs! Got stairs count: "..GetRoomCount("Stairs"))
@@ -1096,25 +1152,26 @@ end
     
   end
 
-  local GOLD_MULTIPLIER = 0.7
+  local GOLD_MULTIPLIER = 1
   function GetLoot(difficulty, treasureRoom)
     if(difficulty == nil) then difficulty = currentDungeonLevel end
     local treasureModifier = 0
     if(treasureRoom == true) then
         treasureModifier = 1
     end
-    local goldCount = 2 + currentFloor + ((GetRandomNumber(18,32))*treasureModifier) + math.random(math.floor(difficulty * 0.25), math.floor(difficulty * 0.75))
+    local goldCount = 2 + roomDifficulty[currentRoom] + currentFloor + ((GetRandomNumber(18,32))*treasureModifier) + math.random(math.floor(difficulty * 0.25), math.floor(difficulty * 0.75))
     if(eliteFight == true) then
         goldCount = goldCount * 1.25
         goldCount = goldCount + (10*currentFloor)
     end
-    if(playerGold >= 250) then
+    if(playerGold >= 250 and currentFloor < currentDungeonFloors) then
         goldCount = goldCount / 2
-        if(playerGold >= 600) then
-            goldCount = goldCount / 2
-        end
-    elseif(playerGold < 100 and currentFloor == currentDungeonFloors) then
+        
+    elseif(playerGold < 200 and currentFloor == currentDungeonFloors) then
         goldCount = goldCount * 1.5
+    end
+    if(playerGold >= 600) then
+        goldCount = goldCount / 2
     end
     if(objectivesComplete == true) then
         goldCount = goldCount / 10
@@ -1253,6 +1310,9 @@ function HighlightKeywords(inputText)
     returnValue = returnValue:gsub( "Mobile", "<color=#ffcc99>Mobile</color>" )
     returnValue = returnValue:gsub( "Poisoned", "<color=#29a329>Poisoned</color>" )
     returnValue = returnValue:gsub( "Poison", "<color=#29a329>Poison</color>" )
+    returnValue = returnValue:gsub( "Nightmare", "<color=#5330ff>Nightmare</color>" )
+    returnValue = returnValue:gsub( "damage dealt", "<color=#fc3030>damage dealt</color>" )
+    
     --returnValue = returnValue:gsub( "Special Ability", "<color=green>Special Ability</color>" )
     return returnValue
 end
@@ -1266,15 +1326,35 @@ end
     -- A table of "required" units (by name). These units will be spawned regardless of the given difficulty level.
     -- For any excess units after the required ones, random units will be picked to suit the remaining difficulty level required.
     -- An encounter can only have up to 18 enemy units total (Including 3 structures). Any additional difficulty after this is achieved by adding stacking buffs to all units.
-function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush)
-
+function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush, isNightmare)
+    if(roomsCleared < 5 and isElite == false) then
+        difficulty = difficulty * 0.65
+    end
+    if(requiredUnits == nil) then requiredUnits = {} end
     DCEI.LogMessage("Generating encounter with difficulty: "..difficulty)
+    if(isNightmare) then
+        DCEI.LogMessage("Generating NIGHTMARE encounter!")
+        isElite = RandomChance( math.ceil(threatLevel+5) - 100)
+        if(isElite) then
+            table.insert(requiredUnits, "Deathspeaker")
+        end
+        table.insert(requiredUnits, "Nightmare Abomination")
+        table.insert(requiredUnits, "Herald")
+        table.insert(requiredUnits, "Witch")
+        table.insert(requiredUnits, "Bone Archer")
+        table.insert(requiredUnits, "Bone Archer")
+        table.insert(affinityTokens,"Nightmare")
+    end
     if(isAmbush and threatLevel >= 120) then
         isElite = RandomChance( math.ceil(threatLevel+10) - 100)
         table.insert(requiredUnits, "Deathspeaker")
         table.insert(requiredUnits, "Bone Warrior")
     end
-    local difficultyRemaining = difficulty
+    local bonusDifficulty = roomDifficulty[currentRoom]
+    if(roomsCleared <= 5) then
+        bonusDifficulty = math.floor(bonusDifficulty * 0.5)
+    end
+    local difficultyRemaining = difficulty + bonusDifficulty
     local availableSpawnPoints = table.clone(enemySpawnPoints)
     --DCEI.LogMessage("Available spawn points: "..GetTableSize(enemySpawnPoints))
     local spawnedEnemiesCount = 0
@@ -1318,7 +1398,7 @@ function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush)
             --DCEI.LogMessage("Applied difficulty stack to enemy unit: "..DCEI.UnitName(randomSpawnedEnemy))
         else
             local randomEnemy = GetRandomElement(ENEMY_TYPES)
-            if(EnemyIsElite(randomEnemy) == false or isElite == true) then
+            if((EnemyIsElite(randomEnemy) == false or isElite == true) and EnemyIsNightmare(randomEnemy) == false) then
                 local createEnemy = true
                 if(randomEnemy.name == "Unholy Altar") then
                     if((spawnedEnemiesCount < 5 or difficulty < 15 ) or spawnedStructuresCount >= 3) then
@@ -1364,7 +1444,11 @@ function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush)
             
         end)
     end
-
+    if(isNightmare) then
+        foreach(spawnedEnemies, function(unit)
+            DCEI.ApplyBehaviorCount(unit,"Nightmare",GetAffinityTokenCount("Nightmare")-1)
+        end)
+    end
     
     --DCEI.ShowFeedbackMessage("Room: <color=yellow>"..(roomsCleared+1))
     SpawnHeroes()
@@ -1458,6 +1542,7 @@ function ClearAllUnits()
         
     end
     RemoveAllCastbars()
+    ClearTooltips()
 end
 
 function PacifyAllUnits()
@@ -1479,6 +1564,7 @@ function PacifyAllUnits()
 
         
     end
+    ClearTooltips()
 end
 
 function PauseAllUnits()
@@ -1675,7 +1761,7 @@ end
 
 function ExpectTarget(unit, abilityToUse)
     ClearTargetingMode()
-    ShowRelevantText("O")
+    --ShowRelevantText("O")
     targetingModeActive = true
     DCEI.SetUpdateFrequency(0.25)
     DCEI.ShowSlowMotionEffect()
@@ -1912,10 +1998,8 @@ function OnBattleFinished(win)
     finished = true
     lastStandActive = false
     campfireActive = false
-    threatLevel = threatLevel + GetRandomNumber(5,8)
-    if(eliteFight) then
-        threatLevel = threatLevel + GetRandomNumber(13,22)
-    end
+    
+    ClearTooltips()
     PauseAllUnits()
     ClearInspectDialog()
     if(targetingModeActive) then
@@ -1941,8 +2025,12 @@ function OnBattleFinished(win)
         DCEI.ShowSlowMotionEffect()
         DCEI.Wait(1)
         DCEI.ShowFeedbackMessage("<size=45>Victory!")
-        --core.FadeOut(2)
         PlaySound("[Sound] Battle Won")
+        DCEI.Wait(1)
+        local threatIncrease = 3 + roomDifficulty[currentRoom]
+        IncreasePlayerThreat(threatIncrease)
+        --ShowRelevantText("<color=red>++ "..threatIncrease.."% Threat")
+        
         DCEI.Wait(3)
         if(CheckVictory() == true) then
             OnObjectivesComplete()
@@ -1985,6 +2073,10 @@ function OnBattleFinished(win)
 end
 
 function OnCheatEntered(message)
+    if(message == "nightmare") then
+        HandleNightmareUpdate()
+        UpdateMapPanel()
+    end
     if(message == "instawin") then
         Cheat_InstaWin()
     end
@@ -2110,6 +2202,10 @@ end
 function OnHeroChoiceMadeOrSkipped()
     UpdateMapPanel()
     ToggleMapFrame(true)
+    if(threatLevel >= 100) then
+        HandleNightmareUpdate()
+    end
+    
     DCEI.ShowFeedbackMessage("Choose a room to move to!")
     
 end
@@ -2482,7 +2578,7 @@ function CreateAffinityFrame()
                 DCEI.SetBackgroundImageColor(affinityButton,1,1,1,225/255)
                 DCEI.SetTooltipText(affinityButton,tooltipText)
                 DCEI.SetText(affinity.countText,GetAffinCountText(affinCount,affinity))
-            elseif(affinity.name ~= "Bonus") then
+            elseif(affinity.name ~= "Bonus" and affinity.name ~= "Nightmare") then
                 DCEI.SetBackgroundImageGrayScale(affinityButton,true)
                 DCEI.SetBackgroundImageColor(affinityButton,1,1,1,140/255)
                 DCEI.SetTooltipText(affinityButton,tooltipText)
@@ -3143,6 +3239,54 @@ function ShowRelevantText(text)
     DCEI.AnimateVerticalOffset(titleText,-15,targetYOffset,animationDuration,"OutSine")
 end
 
+local clearTooltipsHelper = nil
+function ClearTooltips()
+    
+    --[[local container = DCEI.NewFrame(root)
+    clearTooltipsHelper = container
+    --relevantTextBox = container
+    --DCEI.SetBottomAlignmentInParent(container)
+    --DCEI.SetLeftAlignmentInParent(container)
+    --DCEI.SetHorizontalOffsetInParent(container, 15)
+    --DCEI.SetVerticalOffsetInParent(container, -5)
+    DCEI.SetMatchParent(container,true,true)
+    DCEI.SetBackgroundImageColor(container,1,1,1,0)
+    DCEI.SetBlockInput(container, false)
+    local DIALOG_X = 300
+    local DIALOG_Y = 150
+    local xPos = DCEI.GetMousePosition2D().x
+    local yPos = DCEI.GetMousePosition2D().y
+    local tempUnit = DCEI.CreateUnit(1,1,"Temp Marker Unit",xPos,yPos)
+    --DCEI.LogMessage("Setting Roffset to :"..xPos..","..yPos)
+    DCEI.SetHorizontalOffsetInParent(container, xPos)
+    DCEI.SetVerticalOffsetInParent(container, yPos)
+    
+    local padding = DCEI.NewFrame(container)
+    local options = {
+        offset = {up = 0, front = 0, right = 0},
+        center_at_unit_origin = false
+    }
+    DCEI.AttachToUnit(container,tempUnit,options)]]
+    
+    --DCEI.SetTooltipText(container," ")
+    --[[ExecuteAfter(function()
+        DCEI.SetHorizontalOffsetInParent(clearTooltipsHelper, 1000)
+        DCEI.SetVerticalOffsetInParent(clearTooltipsHelper, 1000)
+        DCEI.SetUnitPosition2D(tempUnit, 42, 6)
+    end,0.1)
+    --
+    ExecuteAfter(function()
+        DCEI.SetTooltipText(clearTooltipsHelper,"")
+        --DCEI.Wait(0.01)
+        ExecuteAfter(function()
+            DCEI.LogMessage("Destroying CTH!")
+            DCEI.Destroy(clearTooltipsHelper)
+        end,0.05)
+    end,0.05)]]
+    
+    
+end
+
 local fadeDialog = nil
 function FadeScreen(state, time)
     if(state == true) then
@@ -3174,6 +3318,36 @@ function ShowTargetingDialog(abilityName)
     local text = DCEI.NewText(container)
     DCEI.SetText(text,"Choose a Target! ("..abilityName..")")
     DCEI.SetSize(text,450,67)
+end
+
+local overheadDialog = nil
+function ShowOverheadMessage(messageText, showTime, color)
+    local container = DCEI.NewFrame(root)
+    local thickBG = DCEI.NewFrame(container)
+    targetingDialog = container
+    DCEI.SetBackgroundImage(container, "frame05")
+    DCEI.SetBackgroundImage(thickBG, "frame05")
+    DCEI.SetMatchParent(thickBG,true,true)
+    if(color ~= nil) then
+        DCEI.SetBackgroundImageColor(container, color[1],color[2],color[3],color[4])
+        DCEI.SetBackgroundImageColor(thickBG, color[1],color[2],color[3],color[4])
+    else
+        DCEI.SetBackgroundImageColor(container, 1,1,1,1)
+        DCEI.SetBackgroundImageColor(thickBG, 0,0,0,1)
+    end
+    
+    DCEI.SetSize(container, 650, 75)
+    DCEI.SetTopAlignmentInParent(container)
+    DCEI.SetVerticalOffsetInParent(container,-50)
+    DCEI.AnimateAlpha(container, 0, 1, 0.5, "OutSine")
+
+    local text = DCEI.NewText(container)
+    DCEI.SetText(text,messageText)
+    DCEI.SetSize(text,450,67)
+
+    ExecuteAfter(function()
+        DCEI.AnimateAlpha(container, 1, 0, 0.3, "OutSine")
+    end,showTime)
 end
 
 
@@ -3561,7 +3735,7 @@ function UpdateActiveAffinities()
         --DCEI.LogMessage("Got affinity count:"..affinCount.." for affinity: "..affinity.name)
         if(affinCount >= 1 or (affinity.name == "Bonus" and roomsCleared >= 1)) then
             affinity.isActive = true
-            if((affinCount == affinity.requiredCount or (affinCount >= affinity.requiredCount and affinity.requireExactCount == false)) and affinity.name ~= "Bonus") then
+            if((affinCount == affinity.requiredCount or (affinCount >= affinity.requiredCount and affinity.requireExactCount == false)) and affinity.name ~= "Bonus" and affinity.name ~= "Nightmare") then
                 affinity.bonusActive = true
             else
                 affinity.bonusActive = false
@@ -3589,7 +3763,7 @@ function ApplyAffinityBonuses()
     foreach(AFFINITIES, function(affinity) 
         if(affinity.bonusActive) then
             foreach(party, function(hero)
-                if(UnitIsAlive(hero) and DCEI.UnitBehaviorStackCount(hero, affinity.name) > 0 and affinity.name ~= "Bonus") then
+                if(UnitIsAlive(hero) and DCEI.UnitBehaviorStackCount(hero, affinity.name) > 0 and affinity.name ~= "Bonus" and affinity.name ~= "Nightmare") then
                     if(affinity.hasDedicatedBehavior == true) then
                         DCEI.ApplyBehaviorCount(hero, "AffinityBonus_"..affinity.name)
                     end
@@ -3622,6 +3796,18 @@ function GetAffinityCount(affinity)
         if(UnitIsAlive(hero)) then
             returnCount = returnCount + DCEI.UnitBehaviorStackCount(hero, affinity.name) 
         end
+    end)
+    return returnCount
+end
+
+--Counts only affinity bonus tokens with the given affinity name.
+function GetAffinityTokenCount(affinityName)
+    local returnCount = 0
+    foreach(affinityTokens, function(tokenName)
+        if(tokenName == affinityName) then
+            returnCount = returnCount + 1
+        end
+        
     end)
     return returnCount
 end
@@ -4594,6 +4780,7 @@ function CreateGoldPanel()
     DCEI.SetBackgroundImage(goldIconFrame, "icon_coin00")
     DCEI.SetMinSize(goldIconFrame, 35, 35)
     DCEI.SetMaxSize(goldIconFrame, 35, 35)
+    DCEI.SetTooltipText(goldIconFrame,"Represents your gold.")
 
     goldIndicatorText = DCEI.NewText(goldIconFrame)
     DCEI.SetText(goldIndicatorText, "100")
@@ -4803,7 +4990,8 @@ function CreateMapPanel(floorID)
                 
                 DCEI.SetOnClickCallback(button, 
                 function()
-                    
+                    DCEI.SetTooltipText(button,"")
+                    --DCEI.Wait(.1)
                     GotoRoom(button)
                 end)
 
@@ -4869,11 +5057,97 @@ function GetButtonPosition(roomButtonID)
     return {x=xPos,y=yPos}
 end
 
+local nightmareUpdating = false
+local timesNightmareUpdated = 0
+local recentlyConvertedNightmareRooms = {}
+function HandleNightmareUpdate()
+    recentlyConvertedNightmareRooms = {}
+    nightmareUpdating = true
+    local nightmarePasses = GetRandomNumber(1+timesNightmareUpdated, 2+timesNightmareUpdated)
+    ShowOverheadMessage("You are being pursued...",4.5,{74/255, 0/255,171/255, 255/255})
+    DCEI.PlaySound("desecrate_impact")
+    DCEI.Wait(1)
+    --local nightmareRoomsMade = 0
+    local coreStartRoom = 1
+    for index=1,5 do
+        if(DoesRoomExist(index) == true) then
+            coreStartRoom = index
+        end
+    end
+    for index=1,nightmarePasses do
+        local roomsToConvert = DoNightmarePass(coreStartRoom)
+        
+        foreach(roomsToConvert, function(room)
+        if(DoesRoomExist(room) and GetRoomType(room) ~= "Nightmare") then
+            DCEI.LogMessage("Got room to convert: "..roomsToConvert[1])
+            DCEI.PlaySound("evilwings_meteor_impact")
+            SetRoomType(room,"Nightmare")
+            table.insert(recentlyConvertedNightmareRooms,room)
+            if(currentRoom ~= room) then
+                DCEI.SetBackgroundImage(mapRoomButtons[room],"icon_enhance_darkspire_torment")
+                DCEI.AnimateAlpha(mapRoomButtons[room], 0, 0.45, 0.5, "OutSine")
+                ExecuteAfter(function()
+                    DCEI.AnimateAlpha(mapRoomButtons[room], 0.45, 1, 0.8, "OutSine")
+                end,0.5)
+                DCEI.Wait(1.0)
+            end
+            
+        end
+        
+        end)
+        --DCEI.Wait(0.5)
+    end
+    
+    nightmareUpdating = false
+    timesNightmareUpdated = timesNightmareUpdated + 1
+    UpdateMapPanel()
+end
+
+
+function DoNightmarePass(coreRoom)
+    local roomsToConvert = {}
+    if(GetRoomType(coreRoom) ~= "Nightmare") then
+        table.insert(roomsToConvert,coreRoom)
+        --SetRoomType(coreRoom,"Nightmare"
+    else
+        local nightmareRooms = GetRoomsOfType("Nightmare",0,25,{},map)
+        
+        foreach(nightmareRooms, function(room)
+            local nearby = GetAllPossibleAdjacentRooms(room)
+            foreach(nearby, function(nearRoom)
+                if(GetRoomType(nearRoom) ~= "Nightmare" and GetRoomType(nearRoom) ~= "Stairs" and TableContains(recentlyConvertedNightmareRooms,nearRoom) == false) then
+                    table.insert(roomsToConvert,nearRoom)
+                end
+            end)
+        
+        end)
+    end
+    DCEI.LogMessage("Got number of rooms to convert: "..GetTableSize(roomsToConvert))
+    return roomsToConvert
+end
+
 local mapFrameVisible = false
 function ToggleMapFrame(state)
     mapFrameVisible = state
+    
+    for index = 1, 25 do
+        if(DoesRoomExist(index)) then
+            if((AreRoomsAdjacent(index, currentRoom) or index == currentRoom or IsRoomExplored(index)== false)) then
+                DCEI.SetBackgroundImageGrayScale(mapRoomButtons[index], false)
+            else
+                DCEI.SetBackgroundImageGrayScale(mapRoomButtons[index], true)
+            end
+            --DCEI.SetTooltipText(mapRoomButtons[index],"")
+        end
+    end
+    
     DCEI.SetActive(mapFrame,state)
     UpdateMapVisibleLoop()
+    
+    
+
+    
+    --ClearTooltips()
 end
 local MAX_ALPHA = .5
 local MIN_ALPHA = .1
@@ -4881,7 +5155,9 @@ function UpdateMapVisibleLoop()
     for index = 1, 25 do
         if(IsRoomExplored(index) == true and AreRoomsAdjacent(index, currentRoom) and HasRoomBeenVisited(index) == false) then
             DCEI.AnimateAlpha(mapRoomHighlightButtons[index],MAX_ALPHA,MAX_ALPHA,.1,"InSine")
+            
         else
+            
             DCEI.AnimateAlpha(mapRoomHighlightButtons[index],0,0,.1,"InSine")
         end
     end
@@ -4908,12 +5184,17 @@ end
 
 function GotoRoom(targetRoomButton)
     local targetRoom = 0
+    if(nightmareUpdating) then
+        ShowErrorText("You can't do that right now!")
+        return
+    end
     for index = 1, 25 do
         if(mapRoomButtons[index] == targetRoomButton) then
             targetRoom = index
         end
     end
-    DCEI.LogMessage("Attempting to goto room ID:"..targetRoom)
+    DCEI.LogMessage("Attempting to goto room ID:"..targetRoom.."-- Which is a "..GetRoomType(targetRoom))
+    
     if(battleOngoing == false and AreRoomsAdjacent(targetRoom,currentRoom)) then
         if(GetRoomType(targetRoom) == "Stairs") then
             ConfirmDialog("Next Area?","Would you like to progress to the next area? You will not be able to backtrack!","Continue","Go Back", 
@@ -4938,32 +5219,42 @@ function GotoRoom(targetRoomButton)
     end
 end
 
+function IncreasePlayerThreat(modifyValue)
+    threatLevel = threatLevel + modifyValue
+    ShowRelevantText("<color=red>+ "..modifyValue.."% Threat")
+end
+
 function OnRoomEnter(value)
     local roomType = GetRoomType(value)
     finished = false
     battleOngoing = false
     FadeScreen(false,1.0)
     --DCEI.Wait(1.0)
-    if(HasRoomBeenVisited(value)) then
+    if(HasRoomBeenVisited(value) and roomType ~= "Nightmare") then
         willBeAmbushed = RandomChance(GetAmbushChance())
         if(willBeAmbushed) then
             GenerateEncounter((currentDungeonLevel * 0.7), nil, false, true)
+            ShowOverheadMessage("AMBUSH!",3,{252/255, 57/255,3/255, 255/255})
             CreateCombatDialog()
-            DCEI.Wait(1.2)
-            ShowRelevantText("AMBUSH!")
+            
         else
-            ShowRelevantText("+Threat")
-            threatLevel = threatLevel + GetRandomNumber(3,6)
+            --ShowRelevantText("+Threat")
+            IncreasePlayerThreat(GetRandomNumber(6,10))
             OnShoppingEnded()
         end
     else
-        threatLevel = threatLevel + 1
+        --threatLevel = threatLevel + 2
         if(roomType == "Combat") then
             GenerateEncounter(currentDungeonLevel)
             CreateCombatDialog()
         elseif(roomType == "Elite") then 
-            GenerateEncounter(4+(currentDungeonLevel*1.5),nil,true)
+            GenerateEncounter(2+(currentDungeonLevel*1.25),nil,true)
             CreateCombatDialog()
+        elseif(roomType == "Nightmare") then 
+            GenerateEncounter(4+(currentDungeonLevel*1.5),nil,false,false,true)
+            ShowOverheadMessage("Nightmare!",3,{74/255, 0/255,171/255, 255/255})
+            CreateCombatDialog()
+            
         elseif(roomType == "Shop") then 
             DCEI.Wait(1.0)
             CreateShopDialog()
@@ -4998,8 +5289,9 @@ function OnRoomEnter(value)
             CreateLootDialog(loot, function()
                 OnShoppingEnded()
                 UpdateGoldPanel()
-                ShowRelevantText("+Threat")
-                threatLevel = threatLevel + 2
+                --ShowRelevantText("+Threat")
+                IncreasePlayerThreat(5)
+                --threatLevel = threatLevel + 2
             end)
             
         end
@@ -5075,37 +5367,59 @@ function UpdateMapPanel()
     DCEI.SetText(threatPanelText,GetThreatDescText())
     for index = 1, 25 do
         local imagePath = "icon_enhance_arrowtower_huntersmark"
-        if(GetRoomType(index) == "Shop") then
-            imagePath = "icon_ingame_towerslot_potiondealer"
-        end
-        if(GetRoomType(index) == "Treasure") then
-            imagePath = "icon_enhance_barracks_secondwind"
-        end
-        if(GetRoomType(index) == "Elite") then
-            imagePath = "eliteFightIcon"
-        end
-        if(GetRoomType(index) == "Campsite") then
-            imagePath = "icon_spell_fire_trap"
-        end
-        if(GetRoomType(index) == "Stairs") then
-            imagePath = "icon_ingame_towerslot_upgrade"
-        end
-        if(IsRoomExplored(index) == false) then
-            imagePath = "icon_ingame_towerslot_info"
-        end
-        if(HasRoomBeenVisited(index) == true and index ~= currentRoom) then
-            imagePath = "frame00"
-        end
-        if(currentRoom == index) then
-            imagePath = "icon_spell_holy_avengers"
-        end
+        local tooltipText = ""
+
         if(DoesRoomExist(index)) then
+            if(GetRoomType(index) == "Combat") then
+                --DCEI.LogMessage("Room: "..index.." is a combat room.")
+                imagePath = "icon_enhance_arrowtower_huntersmark"
+                tooltipText = "<color=#e3dd30>Fight</color>\nThis room contains a combat encounter.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]
+            end
+            if(GetRoomType(index) == "Shop") then
+                imagePath = "icon_ingame_towerslot_potiondealer"
+                tooltipText = "<color=#e3dd30>Shop Area</color>\nMove here to purchase items."
+            end
+            if(GetRoomType(index) == "Treasure") then
+                imagePath = "icon_enhance_barracks_secondwind"
+                tooltipText = "<color=#e3dd30>Treasure Room</color>\nThis room contains rare treasure."
+            end
+            if(GetRoomType(index) == "Elite") then
+                imagePath = "eliteFightIcon"
+                tooltipText = "<color=#e3dd30>Elite Fight</color>\nThis room contains harder than normal enemies, but also better loot.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]
+            end
+            if(GetRoomType(index) == "Nightmare") then
+                --DCEI.LogMessage("Room: "..index.." is a nightmare room.")
+                imagePath = "icon_enhance_darkspire_torment"
+                tooltipText = "<color=#e3dd30>Nightmare Fight</color>\nThis room contains extremely difficult enemies. It should probably be avoided.".."\n<color=red>Difficulty: "..20
+            end
+            if(GetRoomType(index) == "Campsite") then
+                imagePath = "icon_spell_fire_trap"
+                tooltipText = "<color=#e3dd30>Campsite</color>\nThis area allows you to heal your heroes, or prepare them for future battles."
+            end
+            if(GetRoomType(index) == "Stairs") then
+                imagePath = "icon_ingame_towerslot_upgrade"
+                tooltipText = "<color=#e3dd30>Passage</color>\nThis room allows you to move to the next area of this dungeon."
+            end
+            if(IsRoomExplored(index) == false) then
+                imagePath = "hiddenRoom"
+                tooltipText = "<color=#e3dd30>???</color>\nThis room's type is unknown. Move closer to it to reveal it."
+            end
+            if(HasRoomBeenVisited(index) == true and GetRoomType(index) ~= "Nightmare" and index ~= currentRoom) then
+                imagePath = "emptyRoom"
+                tooltipText = "<color=#e3dd30>Visited Room</color>\nYou have visited this room. If you return to it, you have a chance to be ambushed."
+            end
+            if(currentRoom == index) then
+                imagePath = "icon_spell_holy_avengers"
+            end
             if(index == currentRoom) then
                 imagePath = "emptyRoomWithStar"
+                tooltipText = "Current Room\nYou are here."
                 --DCEI.EnableButton(mapRoomButtons[index],false)
             else
                 DCEI.EnableButton(mapRoomButtons[index],true)
             end
+            --DCEI.LogMessage("Setting tooltip of room: "..index.." to:"..tooltipText)
+            DCEI.SetTooltipText(mapRoomButtons[index], tooltipText)
             DCEI.SetBackgroundImage(mapRoomButtons[index], imagePath)
         end
         
@@ -5269,7 +5583,7 @@ function OnMapStart()
         local createdUnit = DCEI.CreateUnitWithFacing(1, 1, heroObject.name, emptyPoint.x, emptyPoint.y, 0, 0)
         ExecuteAfter(function()
             foreach(AFFINITIES, function(affinity)
-                if(affinity.name ~= "Bonus" and DCEI.UnitBehaviorStackCount(createdUnit, affinity.name) >= 1) then
+                if(affinity.name ~= "Bonus" and affinity.name ~= "Nightmare" and DCEI.UnitBehaviorStackCount(createdUnit, affinity.name) >= 1) then
                     --DCEI.LogMessage("Recognized affinity: "..affinity.name.." on hero: "..heroObject.name)
                     table.insert(heroObject.affinities, affinity)
                     DCEI.RemoveUnit(createdUnit)

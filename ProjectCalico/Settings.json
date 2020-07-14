@@ -45,7 +45,8 @@
             "Deranged Warthog",
             "Druid",
             "Knight",
-            "Protector"
+            "Protector",
+            "Nightmare Abomination"
         ],
         "usedEffects": [
             "[Sound] Gold Collect",
@@ -103,7 +104,12 @@
             "Bleed",
             "Regrowth Healing",
             "Taunt",
-            "AffinityBonusDamage"
+            "AffinityBonusDamage",
+            "Nightmare"
+        ],
+        "usedSoundAssets": [
+            "desecrate_impact",
+            "evilwings_meteor_impact"
         ],
         "usedAtlasAssets": [
             "stealthEye",
@@ -136,7 +142,10 @@
             "icon_spellshield",
             "hero_activeInfo",
             "affinityEmptyIcon",
-            "affinityBonus"
+            "affinityBonus",
+            "emptyRoom",
+            "hiddenRoom",
+            "affinityNightmare"
         ],
         "usedSpriteAssets": [
             "btn_rounded01"

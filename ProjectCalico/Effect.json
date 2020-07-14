@@ -87,6 +87,13 @@
                 "stackCount": 5
             }
         },
+        "Apply 7 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 7
+            }
+        },
         "Apply Bleed Immunity": {
             "applyBehavior": {
                 "behavior": "Bleed Immunity",
@@ -637,7 +644,7 @@
             "heal": {
                 "whichUnit": 1,
                 "valueType": 1,
-                "healAmount": 50
+                "healAmount": 55
             }
         },
         "Health Potion Search": {
@@ -1542,11 +1549,17 @@
                 "terminateOnPeriodicEffectSuccess": true
             }
         },
-        "Apply 7 Block": {
-            "applyBehavior": {
-                "behavior": "Block",
-                "target": 1,
-                "stackCount": 7
+        "Abomination Claw Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 12,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "2X Damage to Unarmored"
+                        }
+                    }
+                ]
             }
         }
     }

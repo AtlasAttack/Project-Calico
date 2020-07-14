@@ -61,6 +61,16 @@
                 }
             }
         },
+        "AffinityBonusDamage": {
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.2
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
         "AffinityBonus_Armored": {
             "startEffect": "Armored Affinity Apply Set",
             "periodicInterval": 6,
@@ -789,8 +799,18 @@
                 }
             }
         },
-        "AffinityBonusDamage": {
+        "Start With 20 Block": {
+            "duration": 2.25,
+            "periodicInterval": 0.1,
+            "periodicEffect": "Apply 1 Block",
+            "periodicEffectCount": 20
+        },
+        "Nightmare": {
+            "maxStackCount": 10,
             "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.1
+                },
                 "attackSpeedModifier": {
                     "multiplierFactor": 0.1
                 },
@@ -801,6 +821,13 @@
                     "multiplierFactor": 0.1
                 }
             }
+        },
+        "Gain Periodic Block (1 Per 5 Seconds)": {
+            "periodicInterval": 5,
+            "periodicEffect": "Apply 1 Block",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
         }
     }
 }

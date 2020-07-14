@@ -3913,6 +3913,10 @@
                             }
                         ]
                     }
+                ],
+                "eventMacros": [
+                    "[STANDARD EFFECT] Ablaze Effect",
+                    "Events StandardUnit DeathAnimation"
                 ]
             }
         },
@@ -7571,6 +7575,10 @@
                         ]
                     }
                 ],
+                "eventMacros": [
+                    "[STANDARD EFFECT] Ablaze Effect",
+                    "Events StandardUnit DeathAnimation"
+                ],
                 "modelScale": 1.1
             }
         },
@@ -7838,6 +7846,33 @@
                 "rotate": {
                     "y": 0
                 }
+            }
+        },
+        "Nightmare Abomination": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "boss_plaguebringer"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "unitDeath": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 1
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "eventMacros": [
+                    "Events StandardUnit DeathAnimation Decay",
+                    "[STANDARD EFFECT] Ablaze Effect"
+                ],
+                "modelScale": 1.1
             }
         }
     },
@@ -8111,6 +8146,39 @@
                         {
                             "destroy": {
                                 "actor": "Stunned Actor"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "behaviorOn": {
+                            "behavior": "Nightmare"
+                        }
+                    },
+                    "actions": [
+                        {
+                            "setMeshEffect": {
+                                "effect": "Nightmare"
+                            }
+                        },
+                        {
+                            "applyMeshEffect": {
+                                "effect": "Nightmare"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "actorTerm": {
+                        "behaviorOff": {
+                            "behavior": "Nightmare"
+                        }
+                    },
+                    "actions": [
+                        {
+                            "removeMeshEffect": {
+                                "effect": "Nightmare"
                             }
                         }
                     ]

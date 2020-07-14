@@ -199,7 +199,7 @@
         "Berserker": {
             "components": {
                 "unitStats": {
-                    "radius": 0.25,
+                    "radius": 0.3125,
                     "selectable": true,
                     "selectionPriority": 5
                 },
@@ -259,8 +259,8 @@
                     "selectable": true
                 },
                 "health": {
-                    "maxHealth": 60,
-                    "startHealth": 60,
+                    "maxHealth": 45,
+                    "startHealth": 45,
                     "regeneration": 0
                 }
             },
@@ -447,7 +447,7 @@
                 "behaviorList": [
                     "Standard HelperTag",
                     "Decay DoT Searcher",
-                    "Timed Life (20)"
+                    "Timed Life (10)"
                 ]
             }
         },
@@ -633,8 +633,8 @@
                     "selectable": true
                 },
                 "health": {
-                    "maxHealth": 80,
-                    "startHealth": 80,
+                    "maxHealth": 70,
+                    "startHealth": 7,
                     "regeneration": 1,
                     "regenerationDelay": 1
                 }
@@ -755,7 +755,7 @@
         "Knight": {
             "components": {
                 "unitStats": {
-                    "radius": 0.25,
+                    "radius": 0.3125,
                     "selectable": true,
                     "selectionPriority": 5
                 },
@@ -822,7 +822,7 @@
                 "mana": {
                     "maxMana": 10,
                     "startMana": 5,
-                    "regeneration": 0.5,
+                    "regeneration": 1,
                     "regenerationDelay": 2
                 },
                 "movement": {
@@ -1317,6 +1317,30 @@
             },
             "hideUnitStatusBar": false
         },
-        "zzz_BottomUnit": {}
+        "zzz_BottomUnit": {},
+        "Nightmare Abomination": {
+            "baseUnit": "Bone Archer",
+            "components": {
+                "unitStats": {
+                    "radius": 0.625,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 180,
+                    "startHealth": 180
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Deathspeaker Deathbolt"
+                ],
+                "behaviorList": [
+                    "Elite",
+                    "Enemy Stat Modifier",
+                    "Start With 20 Block",
+                    "Gain Periodic Block (1 Per 5 Seconds)"
+                ]
+            }
+        }
     }
 }

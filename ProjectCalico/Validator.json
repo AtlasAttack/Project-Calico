@@ -91,6 +91,30 @@
                 }
             }
         },
+        "No Nearby Visible Units": {
+            "negate": true,
+            "unitWithinRange": {
+                "range": 15,
+                "unitCountRange": {
+                    "min": 3,
+                    "max": 100
+                },
+                "searchFilter": {
+                    "primarySortKeys": {
+                        "key": 3
+                    },
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 0,
+                    "invulerable": 0,
+                    "alive": 1
+                }
+            }
+        },
         "Not Hit By Heavy Arrow": {
             "expression": {
                 "compare": {
@@ -697,30 +721,6 @@
         "TestArea": {
             "negate": false,
             "unitWithinRange": {}
-        },
-        "No Nearby Visible Units": {
-            "negate": true,
-            "unitWithinRange": {
-                "range": 15,
-                "unitCountRange": {
-                    "min": 3,
-                    "max": 100
-                },
-                "searchFilter": {
-                    "primarySortKeys": {
-                        "key": 3
-                    },
-                    "ally": 0,
-                    "enemy": 2,
-                    "neutral": 2,
-                    "missile": 2,
-                    "structure": 2,
-                    "ground": 1,
-                    "stealth": 0,
-                    "invulerable": 0,
-                    "alive": 1
-                }
-            }
         }
     },
     "expressions": {
@@ -821,6 +821,38 @@
                         }
                     },
                     {}
+                ]
+            }
+        },
+        "2X Damage to Unarmored": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "subtract": {
+                            "left": {
+                                "value": {
+                                    "constant": {
+                                        "int32Value": 1
+                                    }
+                                }
+                            },
+                            "right": {
+                                "value": {
+                                    "behaviorStackCount": {
+                                        "unit": 2,
+                                        "behavior": "Armored"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "value": {
+                            "damageAmount": {
+                                "multiplier": 1
+                            }
+                        }
+                    }
                 ]
             }
         }
