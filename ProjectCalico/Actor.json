@@ -7866,6 +7866,34 @@
                                 }
                             }
                         ]
+                    },
+                    {
+                        "actorTerm": {
+                            "unitWeaponStart": {
+                                "weapon": "Abomination Claw"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "unitWeaponStop": {
+                                "weapon": "Abomination Claw"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "stopAnimation": {
+                                    "clipId": 0
+                                }
+                            }
+                        ]
                     }
                 ],
                 "eventMacros": [

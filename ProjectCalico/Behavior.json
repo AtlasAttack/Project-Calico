@@ -299,7 +299,6 @@
         },
         "Difficulty Mod": {
             "maxStackCount": 100,
-            "startEffect": "Apply 1 Block",
             "modifiers": {
                 "maxHealthModifier": {
                     "multiplierFactor": 0.03

@@ -38,6 +38,17 @@ function HeroType(heroName, heroTrait, heroAbility, heroIcon)
     return {name = heroName, description = "Trait: "..heroTrait.."\n\nSpecial Ability: "..heroAbility, image = heroIcon, affinities = {}}
 end
 
+function DoNothing()
+end
+
+function MapEvent(eventName, eventDesc, eventChoice1, eventChoice1Desc,eventChoice1Callback, eventChoice2, eventChoice2Desc,eventChoice2Callback, eventChoice3, eventChoice3Desc,eventChoice3Callback)
+    if(eventChoice3Callback == nil) then eventChoice3Callback = DoNothing end
+    return {name = eventName, description = eventDesc, image = nil, choices = {eventChoice1, eventChoice2,eventChoice3 },
+    choiceDescriptions = {eventChoice1Desc, eventChoice2Desc,eventChoice3Desc },
+    choiceCallbacks = {eventChoice1Callback, eventChoice2Callback,eventChoice3Callback }
+    }
+end
+
 function DisplayBehavior(behaviorName, behaviorIcon, behaviorDesc, showStacks)
     return {name = behaviorName, description = behaviorDesc, image = behaviorIcon, stacks = showStacks}
 end
@@ -95,7 +106,7 @@ local settings = {
     helpTips = false,
 
 }
-local testMode = false
+local testMode = true
 local demonstrationMode = true
 local targetingModeActive = false
 local party = {} -- List of heroes the player controls.
@@ -135,6 +146,7 @@ Item("Stealth Potion",1,"icon_ingame_towerslot_potiondealer",3),
 Item("Bomb Brew",1,"icon_enhance_scorcher_living_bomb",5),
 Item("Stun Potion",1,"icon_enhance_sunsanctum_sunlight",5),
 Item("Refresh Potion",1,"chronoPotion",3)}
+local recentlyPurchasedItems = {}
 
 local displayBehaviors = {
     DisplayBehavior("Mobile","icon_spell_barrel_rocket","This unit can be ordered to move during combat."),
@@ -146,7 +158,22 @@ local displayBehaviors = {
     DisplayBehavior("Immune","icon_spell_shield","This unit is immune to all damage and effects."),
 }
 
-local recentlyPurchasedItems = {}
+
+--MapEvent(eventName, eventDesc, eventChoice1, eventChoice1Desc,eventChoice1Callback, eventChoice2, eventChoice2Desc,eventChoice2Callback, eventChoice3, eventChoice3Desc,eventChoice3Callback)
+local gameEvents = {
+    MapEvent("Trail of Blood","Your party comes across a trail of blood. What would you like to do?","Explore the Path","[Starts a Battle. If you win, you will be able to recruit a hero.]",
+        function()
+            GenerateEncounter(currentDungeonLevel)
+            ToggleMapFrame(false)
+            CreateCombatDialog()
+        end,
+        "Ignore the Path",
+        "Continue adventuring and ignore the path.",
+        DoNothing
+    ),
+}
+
+local displayedEvents = {}
 
 local levelsWithoutPerk = 0
 local gamePerks = {
@@ -176,6 +203,7 @@ local map = {}
 local roomDifficulty = {}
 local clearedRooms = {}
 local exploredRooms = {}
+local distanceFromRoomToStart = {}
 
 local roomTypes = {} --The index of this table will be the room ID.
 local HERO_CHOICE_LEVELS = {1,2,5,8,12,16}
@@ -581,6 +609,17 @@ function TableContains(table, element)
     return false
 end
 
+function RemoveDuplicates(sourceTable)
+    local returnTable = {}
+    foreach(sourceTable, function(value)
+        if(TableContains(returnTable,value) == false) then
+            table.insert(returnTable,value)
+        end
+    
+    end)
+    return returnTable
+end
+
 function table.clone(org)
     return {table.unpack(org)}
   end
@@ -741,14 +780,28 @@ end
 function HasAdjacentRoomOfType(sourceRoomID,searchType, sourceMap)
     if(sourceMap == nil) then sourceMap = map end
     local adjacentRooms = GetAllPossibleAdjacentRooms(sourceRoomID)
+    local returnValue = false
     foreach(adjacentRooms, function(room)
         if(TableContains(sourceMap,room)) then
             if(GetRoomType(room) == searchType) then
-                return true
+                --DCEI.LogMessage("Room ID:"..sourceRoomID.." has adjacent room of type: "..searchType.."! Adj_Room="..room)
+                returnValue = true
             end
         end
     end)
-    return false
+    return returnValue
+end
+
+function GetAdjacentRoomsCount(sourceRoomID, sourceMap)
+    if(sourceMap == nil) then sourceMap = map end
+    local adjacentRooms = GetAllPossibleAdjacentRooms(sourceRoomID)
+    local returnCount = 0
+    for index=1,GetTableSize(adjacentRooms) do
+        if(TableContains(sourceMap, adjacentRooms[index])) then
+            returnCount = returnCount + 1
+        end
+    end
+    return returnCount
 end
 
 function GetAllPossibleAdjacentRooms(sourceRoomID)
@@ -778,6 +831,25 @@ function GetRoomsOfType(requiredType, minimumRoomID, maxRoomID, forbiddenAdjacen
     return returnRooms
 end
 
+function GetRandomUnaddedRoom(sourceMap)
+    if(sourceMap == nil) then sourceMap = map end
+    local possibleRooms = {}
+
+    foreach(sourceMap, function(room)
+        local adjacent = GetAllPossibleAdjacentRooms(room)
+        foreach(adjacent, function(nearRoom)
+            if(TableContains(sourceMap,nearRoom) == false) then
+                table.insert(possibleRooms,nearRoom)
+            end
+        end)
+    end)
+
+    if(GetTableSize(possibleRooms) <= 1) then
+        return nil
+    end
+    return GetRandomElement(possibleRooms)
+end
+
 function ExploreRoom(roomID)
     --DCEI.LogMessage("Attempting to explore room ID:"..roomID)
     if(GetRoomType(roomID) == "Stairs") then
@@ -786,13 +858,18 @@ function ExploreRoom(roomID)
     end
     table.insert(exploredRooms,roomID)
     --DCEI.LogMessage("Successfully explored room:"..roomID)
-    local adjRooms = GetAllPossibleAdjacentRooms(roomID)
-    for index=1, GetTableSize(adjRooms) do
+    --local adjRooms = GetAllPossibleAdjacentRooms(roomID)
+    --[[for index=1, GetTableSize(adjRooms) do
         --DCEI.LogMessage("Got adjacent room from:"..roomID.." adj:"..index)
         table.insert(exploredRooms,adjRooms[index])
         --DCEI.LogMessage("Explored Adjacent room:"..adjRooms[index])
-    end
+    end]]
     UpdateMapPanel()
+end
+
+function ForceExploreRoom(roomID)
+    table.insert(exploredRooms,roomID)
+
 end
 
 
@@ -825,6 +902,7 @@ function GenerateMap(floorID)
     exploredRooms = {}
     map = {}
     roomTypes = {}
+    distanceFromRoomToStart = {}
     
     recentlyPurchasedItems = {}
     
@@ -840,7 +918,7 @@ function GenerateMap(floorID)
     
     local topRoom = GetRandomNumber(21,25)
     if(isTopFloor == false) then
-        SetRoomType(topRoom,"Stairs")
+        --SetRoomType(topRoom,"Stairs")
         --DCEI.LogMessage("Room ID 23 is: "..roomTypes[23])
     end
     local centerRoom = GetRandomNumber(11,15)
@@ -901,7 +979,7 @@ function GenerateMap(floorID)
         end
     end]]
     local attemptNum = 1
-    while(ArePointsConnected(starterRoom,topRoom,returnList,0) == false) do
+    while(ArePointsConnected(starterRoom,topRoom,returnList) == false) do
         DCEI.LogMessage("Start and end rooms not connected. Attempt: "..attemptNum)
         local unconnectedRooms = {}
 
@@ -917,14 +995,16 @@ function GenerateMap(floorID)
 
             end
         end
+        
         if(RandomChance(mapGenSize*10)) then
+            local roomToAdd = GetRandomUnaddedRoom(returnList)
             for index = 1, 2 do
-                table.insert(returnList, GetRandomNumber(6,20))
+                table.insert(returnList, roomToAdd)
             end
-    
+            roomToAdd = GetRandomUnaddedRoom(returnList)
             for index = 1, 2 do
                 local randomRoom = GetRandomNumber(1,20)
-                table.insert(returnList, randomRoom)
+                table.insert(returnList, roomToAdd)
             end
         end
         
@@ -932,6 +1012,7 @@ function GenerateMap(floorID)
         attemptNum = attemptNum + 1
     end
 
+    local attempts = 0
     if(ArePointsConnected(starterRoom,topRoom,returnList,0) == false) then
         DCEI.LogMessage("Start and end rooms not connected. Attempt: "..1)
         local unconnectedRooms = {}
@@ -951,6 +1032,7 @@ function GenerateMap(floorID)
         for index = 1, mapGenSize do
             table.insert(returnList, GetRandomNumber(6,20))
         end
+        attempts = attempts + 1
     end
 
 
@@ -1042,36 +1124,113 @@ function GenerateMap(floorID)
     SetRoomType(starterRoom,"Start")
     currentRoom = starterRoom
     ExploreRoom(starterRoom)
+    table.sort(returnList, function(a, b) return a < b end)
+    returnList = RemoveDuplicates(returnList)
+    for i=1,GetTableSize(returnList) do
+        DCEI.LogMessage(" >>>  Got room ID:"..returnList[i])
+    end
+    local furthestRoom = topRoom
+    local furthestDistance = 0
+    foreach(returnList, function(roomID)
+        local dist = GetMapDistance(starterRoom,roomID,returnList)
+        if(dist >= furthestDistance) then
+            furthestDistance = dist
+            furthestRoom = roomID
+        end
+        distanceFromRoomToStart[roomID] = dist
+        DCEI.LogMessage("Got room :"..roomID.." distance from start to be: "..dist)
+    end)
     foreach(returnList, function(roomID)
         if(GetRoomType(roomID) == "Elite" and floorID == 1 and dungeonData.difficulty <= 5) then
             SetRoomType(roomID,"Combat") 
         end
-        if(GetRoomType(roomID) == "Treasure" and HasAdjacentRoomOfType(roomID,"Treasure",returnList) == true) then
-            if(RandomChance(20+(dungeonData.difficulty*3))) then
+        
+        --Validate distance measurements.
+        local distance = distanceFromRoomToStart[roomID]
+        local adjacent = GetAllPossibleAdjacentRooms(roomID)
+        foreach(adjacent, function(nearbyRoom)
+            if(TableContains(returnList,nearbyRoom)) then
+                local theirDistance = distanceFromRoomToStart[nearbyRoom]
+                if(theirDistance == distance or theirDistance+1 == distance or theirDistance-1 == distance) then
+                    --Distance validation good!
+                else
+                    --Distance validation is bad. Either their distance is wrong, or ours is.
+                    if(distance > theirDistance+1) then
+                        --Our distance is too large!
+                        distanceFromRoomToStart[roomID] = theirDistance + 1
+                        DCEI.LogMessage("Distance validation FAILED for point: "..roomID.." got original distance: "..distance.." :: Setting to: "..(theirDistance+1).." (via point: "..nearbyRoom..")")
+                    elseif(theirDistance > distance + 1) then
+                    DCEI.LogMessage("Distance validation FAILED for point: "..nearbyRoom.." got original distance: "..theirDistance.." :: Setting to: "..(distance+1).." (via point: "..roomID..")")
+                        --Their distance is too large!
+                        distanceFromRoomToStart[nearbyRoom] = distance + 1
+                    end
+                end
+            end
+            
+        
+        end)
+
+        --Finished validation of distance
+        
+        --DCEI.LogMessage("Doing post-checks for room ID:"..roomID.." of type: "..GetRoomType(roomID))
+        if(GetAdjacentRoomsCount(roomID,returnList) == 1 and GetRoomType(roomID) == "Combat") then --Combat rooms should never be dead ends. These should be elite fights or treasures!
+            if(RandomChance(80)) then
                 SetRoomType(roomID,"Elite")
+                --DCEI.LogMessage("Setting one adjacent combat room to type Event.")
+            elseif(HasAdjacentRoomOfType(roomID,"Treasure",returnList) == false) then
+                SetRoomType(roomID,"Treasure")
+            else
+                SetRoomType(roomID,"Campsite")
+            end
+        end
+        if(GetRoomType(roomID) == "Combat" and HasAdjacentRoomOfType(roomID,"Combat",returnList) == true) then
+            --DCEI.LogMessage(" >> Got combat adjacency for room ID:"..roomID)
+            if(RandomChance(20)) then
+                SetRoomType(roomID,"Event")
+                DCEI.LogMessage("Setting one adjacent combat room to type Event.")
+            elseif(GetRoomCount("Shop",returnList) < 1) then
+                SetRoomType(roomID,"Shop")
+            elseif(GetRoomCount("Treasure",returnList) < 1 and (floorID >= 2 or RandomChance(15))) then
+                SetRoomType(roomID,"Treasure")
+            elseif(GetRoomCount("Campsite",returnList) < 1 and RandomChance(20)) then
+                SetRoomType(roomID,"Campsite")
+            end
+            
+        end
+        if(GetRoomType(roomID) == "Treasure" and HasAdjacentRoomOfType(roomID,"Treasure",returnList) == true) then
+            --DCEI.LogMessage(" >> Got treasure adjacency for room ID:"..roomID)
+            if(RandomChance(80)) then
+                SetRoomType(roomID,"Event")
+                --DCEI.LogMessage("Setting one adjacent treasure room to type Event.")
+            else
+                --DCEI.LogMessage("Allowing one adjacent treasure room to have adjacent treasure spot.")
+                --SetRoomType(roomID,"Combat") 
+            end
+            
+        end
+        if(GetRoomType(roomID) == "Shop" and HasAdjacentRoomOfType(roomID,"Shop",returnList)) then
+            --DCEI.LogMessage(" >> Got shop adjacency for room ID:"..roomID)
+            if(RandomChance(50)) then
+                SetRoomType(roomID,"Event")
+                --DCEI.LogMessage("Setting one adjacent shop room to type Event.")
             else
                 SetRoomType(roomID,"Combat") 
             end
             
         end
-        if(GetRoomType(roomID) == "Shop" and HasAdjacentRoomOfType(roomID,"Shop",returnList)) then
-            if(RandomChance(10+(dungeonData.difficulty*3))) then
-                SetRoomType(roomID,"Elite")
-            else
-                SetRoomType(roomID,"Combat")
-            end
-            
-        end
         if(GetRoomType(roomID) == "Combat" or GetRoomType(roomID) == "Elite") then
-            local difficultyLevel = GetRandomNumber(1,8)
+            local difficultyLevel = GetRandomNumber(0+floorID,7+floorID)
             if(AreRoomsAdjacent(topRoom,roomID)) then
                 difficultyLevel = difficultyLevel + 3
             end
+            if(distanceFromRoomToStart[roomID] <= 2) then
+                difficultyLevel = GetRandomNumber(1,4+(floorID))
+            end
             if(GetRoomType(roomID) == "Elite") then
-                difficultyLevel = 12
+                difficultyLevel = 10 + GetRandomNumber(floorID,6+floorID)
             end
             roomDifficulty[roomID] = difficultyLevel
-            DCEI.LogMessage("Set difficulty of room:"..roomID.." to:"..difficultyLevel)
+            --DCEI.LogMessage("Set difficulty of room:"..roomID.." to:"..difficultyLevel)
             
         else
             
@@ -1079,36 +1238,215 @@ function GenerateMap(floorID)
         end
     
     end)
-    if(GetRoomCount("Stairs") < 1 and isTopFloor == false) then
-        SetRoomType(topRoom,"Stairs")
+
+    local checks = 0
+    local passedValidation = false
+
+    while(passedValidation == false and checks < 20) do
+        passedValidation = MapDistanceValidation(returnList)
+        DCEI.LogMessage("Doing map vaildation... pass: "..checks)
+        checks = checks+1
+    end
+
+    foreach(returnList, function(roomID)
+
+        --[[local distance = distanceFromRoomToStart[roomID]
+        local adjacent = GetAllPossibleAdjacentRooms(roomID)
+        foreach(adjacent, function(nearbyRoom)
+            if(TableContains(returnList,nearbyRoom)) then
+                local theirDistance = distanceFromRoomToStart[nearbyRoom]
+                if(theirDistance == distance or theirDistance+1 == distance or theirDistance-1 == distance) then
+                    --Distance validation good!
+                else
+                    --Distance validation is bad. Either their distance is wrong, or ours is.
+                    if(distance > theirDistance+1) then
+                        --Our distance is too large!
+                        distanceFromRoomToStart[roomID] = theirDistance + 1
+                        DCEI.LogMessage("Distance validation FAILED for point: "..roomID.." got original distance: "..distance.." :: Setting to: "..(theirDistance+1).." (via point: "..nearbyRoom..")")
+                    elseif(theirDistance > distance + 1) then
+                    DCEI.LogMessage("Distance validation FAILED for point: "..nearbyRoom.." got original distance: "..theirDistance.." :: Setting to: "..(distance+1).." (via point: "..roomID..")")
+                        --Their distance is too large!
+                        distanceFromRoomToStart[nearbyRoom] = distance + 1
+                    end
+                end
+            end
+            
+        
+        end)]]
+        --local dist = GetMapDistance(starterRoom,roomID,returnList)
+        furthestDistance = 0
+        if(distanceFromRoomToStart[roomID] >= furthestDistance) then
+            furthestDistance = dist
+            furthestRoom = roomID
+        end
+        --distanceFromRoomToStart[roomID] = dist
+        if(GetRoomType(roomID) == "Stairs" or (GetRoomType(roomID)== "Treasure" and RandomChance(20)) or (GetRoomType(roomID)== "Elite" and RandomChance(65)) or 
+        (GetRoomType(roomID)== "Combat" and RandomChance(70)) or (GetRoomType(roomID)== "Campsite" and RandomChance(90)) or (GetRoomType(roomID)== "Shop" and RandomChance(85))
+            
+        )then
+            ForceExploreRoom(roomID)
+        end
+        --DCEI.LogMessage("Got room :"..roomID.." distance from start to be: "..dist)
+    end)
+    SetRoomType(furthestRoom,"Stairs")
+    ForceExploreRoom(furthestRoom)
+    if(GetRoomCount("Stairs",returnList) < 1 and isTopFloor == false) then
+        SetRoomType(furthestRoom,"Stairs")
         --DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs! Got stairs count: "..GetRoomCount("Stairs"))
         --DCEI.LogMessage("Room ID 23 is: "..roomTypes[23])
-        if(GetRoomCount("Stairs") < 1 and isTopFloor == false) then
-            SetRoomType(topRoom,"Stairs")
+        if(GetRoomCount("Stairs",returnList) < 1 and isTopFloor == false) then
+            SetRoomType(furthestRoom,"Stairs")
             --DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs!")
         end
-        if(GetRoomCount("Stairs") < 1 and isTopFloor == false) then
-            SetRoomType(topRoom,"Stairs")
+        if(GetRoomCount("Stairs",returnList) < 1 and isTopFloor == false) then
+            SetRoomType(furthestRoom,"Stairs")
             DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs!")
         end
     end
+    local distFromStartToStairs = GetMapDistance(starterRoom,topRoom,returnList)
+    DCEI.LogMessage("Got Map distance: "..distFromStartToStairs)
+
+    local distFromStartToCenter = GetMapDistance(starterRoom,13,returnList)
+    DCEI.LogMessage("Got Center Map distance: "..distFromStartToCenter)
+
+    local distFromStartToRand = GetMapDistance(starterRoom,randomRoom,returnList)
+    DCEI.LogMessage("Got Random Map point: "..forcedShopRoom.." distance: "..distFromStartToRand)
     return returnList
 
 end
 
-function GetRoomCount(roomType)
+function MapDistanceValidation(sourceMap)
+    local passedValidation = true
+    foreach(sourceMap, function(roomID)
+        --Validate distance measurements.
+        local distance = distanceFromRoomToStart[roomID]
+        local adjacent = GetAllPossibleAdjacentRooms(roomID)
+        foreach(adjacent, function(nearbyRoom)
+            if(TableContains(sourceMap,nearbyRoom)) then
+                local theirDistance = distanceFromRoomToStart[nearbyRoom]
+                if(theirDistance == distance or theirDistance+1 == distance or theirDistance-1 == distance) then
+                    --Distance validation good!
+                else
+                    --Distance validation is bad. Either their distance is wrong, or ours is.
+                    if(distance > theirDistance+1) then
+                        --Our distance is too large!
+                        distanceFromRoomToStart[roomID] = theirDistance + 1
+                        passedValidation = false
+                        DCEI.LogMessage("Distance validation FAILED for point: "..roomID.." got original distance: "..distance.." :: Setting to: "..(theirDistance+1).." (via point: "..nearbyRoom..")")
+                    elseif(theirDistance > distance + 1) then
+                    DCEI.LogMessage("Distance validation FAILED for point: "..nearbyRoom.." got original distance: "..theirDistance.." :: Setting to: "..(distance+1).." (via point: "..roomID..")")
+                        --Their distance is too large!
+                        passedValidation = false
+                        distanceFromRoomToStart[nearbyRoom] = distance + 1
+                    end
+                end
+            end
+            
+        
+        end)
+    end)
+    return passedValidation
+end
+
+function GetRoomCount(roomType, sourceMap)
+    if(sourceMap == nil) then sourceMap = map end
     local returnCount = 0
-    foreach(roomTypes, function(t)
+    for index=1,25 do
+        if(TableContains(sourceMap,index) == true) then
+            if(GetRoomType(index) == roomType) then
+                returnCount = returnCount + 1
+            end
+        end
+    end
+   --[[foreach(roomTypes, function(t)
         if(t == roomType) then
             returnCount = returnCount + 1
         end
-    end)
+    end)]]
+    DCEI.LogMessage("Getting room count of type: "..roomType.." returning count: "..returnCount)
     return returnCount
 end
 
 
+function GetMapDistance(sourcePoint, targetPoint, mapToCheck, distanceSoFar, log, nodesChecked)
+    
+    if(distanceSoFar == nil) then distanceSoFar = 0 end
+    --[[if(distanceSoFar == 0 and ArePointsConnected(sourcePoint,targetPoint, mapToCheck, 0)) then
+        DCEI.LogMessage("WARNING : Tried to get the distance of two points that are not connected! :: "..sourcePoint.." and "..targetPoint)
+        return -1
+    end]]
+    if(sourcePoint == nil or targetPoint == nil) then
+        return -1
+    end
+    --DCEI.LogMessage("Get Map Distance checking node: "..sourcePoint.." to "..targetPoint)
+    if(TableContains(mapToCheck,sourcePoint) == false) then
+        return -1
+    end
+    if(targetPoint == sourcePoint and TableContains(mapToCheck,targetPoint)) then
+        --DCEI.LogMessage("INFO : Distance check branch got a viable distance measurement:"..distanceSoFar)
+        return distanceSoFar
+    end
+    if(distanceSoFar >= 35) then
+        --DCEI.LogMessage("WARNING : Distance check expiring branch for sourcepoint:"..targetPoint)
+        return -1
+    end
+    if(nodesChecked == nil) then
+        nodesChecked = {}
+    end
+    table.insert(nodesChecked,sourcePoint)
+    local nextNode = GetRoomInDirection(sourcePoint,"Up")
+    local upDistance = -1
+    if(TableContains(nodesChecked,nextNode) == false) then
+        upDistance = GetMapDistance(nextNode,targetPoint,mapToCheck,distanceSoFar + 1,log,nodesChecked)
+    end
+
+    nextNode = GetRoomInDirection(sourcePoint,"Down")
+    local downDistance = -1
+    if(TableContains(nodesChecked,nextNode) == false) then
+        downDistance = GetMapDistance(nextNode,targetPoint,mapToCheck,distanceSoFar + 1,log,nodesChecked)
+    end
+
+    nextNode = GetRoomInDirection(sourcePoint,"Right")
+    local rightDistance = -1
+    if(TableContains(nodesChecked,nextNode) == false) then
+        rightDistance = GetMapDistance(nextNode,targetPoint,mapToCheck,distanceSoFar + 1,log,nodesChecked)
+    end
+
+    nextNode = GetRoomInDirection(sourcePoint,"Left")
+    local leftDistance = -1
+    if(TableContains(nodesChecked,nextNode) == false) then
+        leftDistance = GetMapDistance(nextNode,targetPoint,mapToCheck,distanceSoFar + 1,log,nodesChecked)
+    end
+    
+    
+    --local downDistance = GetMapDistance(GetRoomInDirection(sourcePoint,"Down"),targetPoint,mapToCheck,distanceSoFar + 1,log)
+    --local rightDistance = GetMapDistance(GetRoomInDirection(sourcePoint,"Left"),targetPoint,mapToCheck,distanceSoFar + 1,log)
+    --local leftDistance = GetMapDistance(GetRoomInDirection(sourcePoint,"Right"),targetPoint,mapToCheck,distanceSoFar + 1,log)
+    local possibleDistances = {}
+    if(upDistance >= 0) then table.insert(possibleDistances, upDistance) end
+    if(downDistance >= 0) then table.insert(possibleDistances, downDistance) end
+    if(rightDistance >= 0) then table.insert(possibleDistances, rightDistance) end
+    if(leftDistance >= 0) then table.insert(possibleDistances, leftDistance) end
+
+    local lowestDistance = 500
+    for index=1,GetTableSize(possibleDistances) do
+        if(possibleDistances[index] < lowestDistance) then
+            lowestDistance = possibleDistances[index]
+        end
+    end
+    if(lowestDistance < 500) then
+        return lowestDistance
+    else
+        return -1
+    end
+    
+end
 
 function ArePointsConnected(sourcePoint, targetPoint, mapToCheck, checksMade, log)
+    return GetMapDistance(sourcePoint,targetPoint,mapToCheck,checksMade,log) >= 0
+end
+
+--[[function ArePointsConnected(sourcePoint, targetPoint, mapToCheck, checksMade, log)
     --if(originalPoint == nil) then originalPoint = sourcePoint end
     if(checksMade == nil) then checksMade = 0 end
     if(sourcePoint == nil or targetPoint == nil) then
@@ -1124,7 +1462,7 @@ function ArePointsConnected(sourcePoint, targetPoint, mapToCheck, checksMade, lo
         return false
     end
     return ArePointsConnected(GetRoomInDirection(sourcePoint,"Up"),targetPoint,mapToCheck,checksMade + 1,log) or ArePointsConnected(GetRoomInDirection(sourcePoint,"Down"),targetPoint,mapToCheck,checksMade + 1,log) or ArePointsConnected(GetRoomInDirection(sourcePoint,"Left"),targetPoint,mapToCheck,checksMade + 1,log) or ArePointsConnected(GetRoomInDirection(sourcePoint,"Right"),targetPoint,mapToCheck,checksMade + 1,log)
-end
+end]]
 
   -- Has a given chance (between 1-100) to return true based on the integer provided.
   function RandomChance(chance)
@@ -2077,6 +2415,12 @@ function OnCheatEntered(message)
         HandleNightmareUpdate()
         UpdateMapPanel()
     end
+    if(message == "reveal") then
+        ExecuteCampsiteDecision(3)
+        UpdateMapPanel()
+    end
+
+    
     if(message == "instawin") then
         Cheat_InstaWin()
     end
@@ -4799,6 +5143,99 @@ function UpdateGoldPanel()
     DCEI.SetText(goldIndicatorText, ""..playerGold)
 end
 
+local eventPanel = nil
+function ShowEvent(eventToShow)
+    if(eventPanel ~= nil) then
+        DCEI.Destroy(eventPanel)
+    end
+    local container = DCEI.NewFrame(root)
+    eventPanel = container
+
+
+    local padding = DCEI.NewFrame(container)
+    DCEI.SetBackgroundImage(padding, "frame_dark_stroke")
+    DCEI.SetMinSize(padding, 520, 425)
+    DCEI.SetBackgroundImageColor(padding, 246, 225, 87, 220 / 255)
+    DCEI.SetHorizontalOffsetInParent(padding, 10)
+
+
+    local textBG = DCEI.NewFrame(padding)
+    DCEI.SetSize(textBG,500,90)
+    DCEI.SetTopAlignmentInParent(textBG)
+    DCEI.SetVerticalOffsetInParent(textBG, -45)
+    DCEI.SetBackgroundImage(textBG, "frame_dark_stroke")
+    DCEI.SetBackgroundImageColor(textBG, 246, 225, 87, 75 / 255)
+
+    local text = DCEI.NewText(padding)
+    DCEI.SetText(text, "<color=yellow>"..eventToShow.name)
+    DCEI.SetTopAlignmentInParent(text)
+    DCEI.SetVerticalOffsetInParent(text, 0)
+    DCEI.SetTextFontSize(text, 25) 
+    DCEI.SetSize(text,475,50)
+
+    
+    text = DCEI.NewText(textBG)
+    DCEI.SetText(text, "<color=#e0e0e0>"..eventToShow.description)
+    DCEI.SetTopAlignmentInParent(text)
+    DCEI.SetVerticalOffsetInParent(text, 0)
+    DCEI.SetTextFontSize(text, 18)
+    DCEI.SetSize(text,475,90)
+
+    local eventChoices = 2
+    if(eventToShow.choices[3] ~= nil and eventToShow.choiceDescriptions[3] ~= nil) then
+        eventChoices = 3
+    end
+    if(eventToShow.choices[2] == nil or eventToShow.choiceDescriptions[2] == nil) then
+        eventChoices = 2
+    end
+
+
+    local image = DCEI.NewFrame(padding)
+    DCEI.SetSize(image,500,155)
+    --DCEI.SetTopAlignmentInParent(image)
+    DCEI.SetVerticalOffsetInParent(image, -10)
+    DCEI.SetBackgroundImage(image, "placeholder")
+    DCEI.SetBackgroundImageColor(image, 246, 225, 87, 65 / 255)
+
+    local spacing = 20
+    if(eventChoices == 2) then
+        spacing = 40
+    end
+    local baseX = 540
+    if(eventChoices == 3) then
+        baseX = baseX - 20
+    end
+    local buttonX = (baseX - (spacing * eventChoices))/eventChoices
+    local buttonY = 100
+    local stack = DCEI.NewHStack(padding)
+    DCEI.SetSize(stack,500,buttonY)
+    DCEI.SetBottomAlignmentInParent(stack)
+    DCEI.SetBackgroundImage(stack, "frame_dark_stroke")
+    DCEI.SetVerticalOffsetInParent(stack,18)
+    DCEI.SetBackgroundImageColor(stack, 235/255, 219/255, 80/255, 25 / 255)
+    DCEI.LogMessage("Got "..eventChoices.." events for eventname:"..eventToShow.name)
+    DCEI.SetSpacing(stack,spacing)
+    local images = {"btn_yellow_pressed","btn_yellow"}
+    for buttonID=1,eventChoices do
+        local button = DCEI.NewButton(stack)
+        DCEI.SetBackgroundImage(button, images[(buttonID % 2) + 1])
+        DCEI.SetSize(button,buttonX,buttonY)
+
+        text = DCEI.NewText(button)
+        DCEI.SetText(text, ""..eventToShow.choices[buttonID])
+        --DCEI.SetTopAlignmentInParent(text)
+        DCEI.SetVerticalOffsetInParent(text, 0)
+        DCEI.SetTextFontSize(text, 22)
+        DCEI.SetSize(text,buttonX,buttonY)
+        DCEI.SetOnClickCallback(button, function()
+            DCEI.Destroy(eventPanel)
+            OnShoppingEnded()
+            eventToShow.choiceCallbacks[buttonID]()
+            
+        end)
+    end
+end
+
 
 local mapRoomButtons = {}
 local mapRoomHighlightButtons = {}
@@ -5258,6 +5695,9 @@ function OnRoomEnter(value)
         elseif(roomType == "Shop") then 
             DCEI.Wait(1.0)
             CreateShopDialog()
+        elseif(roomType == "Event") then 
+            DCEI.Wait(1.0)
+            ShowEvent(gameEvents[1])
         elseif(roomType == "Campsite") then
             DCEI.Wait(1.0) 
             CreateThreeChoiceDialog("Campsite","You've arrived at a campsite. You can either restore health to your heroes, train for the next battle, or scout all rooms in this area.",
@@ -5280,6 +5720,8 @@ function OnRoomEnter(value)
             exploredRooms = {}
             clearedRooms = {}
             IncreaseDungeonLevel()
+            IncreaseDungeonLevel()
+            --IncreaseDungeonLevel()
             CreateMapPanel(currentFloor+1)
             OnShoppingEnded()
             
@@ -5391,6 +5833,10 @@ function UpdateMapPanel()
                 --DCEI.LogMessage("Room: "..index.." is a nightmare room.")
                 imagePath = "icon_enhance_darkspire_torment"
                 tooltipText = "<color=#e3dd30>Nightmare Fight</color>\nThis room contains extremely difficult enemies. It should probably be avoided.".."\n<color=red>Difficulty: "..20
+            end
+            if(GetRoomType(index) == "Event") then
+                imagePath = "icon_ingame_ramhammer_altar_blessing"
+                tooltipText = "<color=#e3dd30>Event</color>\nMoving to this area will trigger a random event."
             end
             if(GetRoomType(index) == "Campsite") then
                 imagePath = "icon_spell_fire_trap"
@@ -5531,11 +5977,12 @@ function StartGame()
         --CreateShopDialog()
         --ConfirmDialog()
         ToggleMapFrame(false)
+        
+        --[[ToggleMapFrame(false)]]
         PresentHeroChoice(GetRandomChoosableHeroes(),
         function ()
             --GenerateEncounter(1,{"Deathspeaker"})
-            GenerateEncounter(1,{"Witch","Witch"})
-            CreateCombatDialog()
+            ShowEvent(gameEvents[1])
             if(settings.helpTips == true) then
                 DCEI.ShowMessageWithButtonText("Combat", "Before combat, you can click on enemy units to see their special abilities and traits.\n\nOptionally, you can also reposition your units before every battle by clicking the reposition button in the lower right, then clicking and dragging on the unit you want to move. Positioning is key to protecting key units, or avoiding dangerous enemies.", "Got it!")  
             end

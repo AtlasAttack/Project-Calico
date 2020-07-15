@@ -145,7 +145,8 @@
             "affinityBonus",
             "emptyRoom",
             "hiddenRoom",
-            "affinityNightmare"
+            "affinityNightmare",
+            "placeholder"
         ],
         "usedSpriteAssets": [
             "btn_rounded01"
