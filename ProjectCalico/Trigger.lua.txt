@@ -115,6 +115,10 @@ local partyUnits = {}
 local partyUnitHealth = {}
 local partyUnitPosition = {}
 local PARTY_SIZE = 0
+
+local HERO_CHOICE_LEVELS = {1,2,5,8,13}
+local earnsHeroThisLevel = false --If set to true, the player will be able to pick a hero the next time they win a battle, regardless of if it's a hero choice level or not.
+
 local battleOngoing = false
 local heroicLevel = 0
 local snapOffset = {x=0,y=-0.35}
@@ -123,6 +127,7 @@ local enemySpawnPoints = {}
 local playerGold = 20
 local playerPower = 0
 local roomsCleared = 0
+local roomsClearedThisFloor = 0
 local currentRoom = 0
 local currentDungeonFloors = 3 --The max number of "floors" or sections in this dungeon.
 local currentFloor = 1
@@ -159,21 +164,7 @@ local displayBehaviors = {
 }
 
 
---MapEvent(eventName, eventDesc, eventChoice1, eventChoice1Desc,eventChoice1Callback, eventChoice2, eventChoice2Desc,eventChoice2Callback, eventChoice3, eventChoice3Desc,eventChoice3Callback)
-local gameEvents = {
-    MapEvent("Trail of Blood","Your party comes across a trail of blood. What would you like to do?","Explore the Path","[Starts a Battle. If you win, you will be able to recruit a hero.]",
-        function()
-            GenerateEncounter(currentDungeonLevel)
-            ToggleMapFrame(false)
-            CreateCombatDialog()
-        end,
-        "Ignore the Path",
-        "Continue adventuring and ignore the path.",
-        DoNothing
-    ),
-}
 
-local displayedEvents = {}
 
 local levelsWithoutPerk = 0
 local gamePerks = {
@@ -206,7 +197,7 @@ local exploredRooms = {}
 local distanceFromRoomToStart = {}
 
 local roomTypes = {} --The index of this table will be the room ID.
-local HERO_CHOICE_LEVELS = {1,2,5,8,12,16}
+
 
 --Affinity(affinityName, affinityPassiveText,affinityIcon, affinityRequiredBonusCount, affinityBonusText, requireExactCount, hasDedicatedBehavior )
 local AFFINITIES = { 
@@ -223,7 +214,7 @@ local AFFINITIES = {
     
     
     Affinity("Bonus","For each Affinity bonus you have, your team gains +20% damage dealt.","affinityBonus",0,"",false),
-    Affinity("Nightmare","Each time you encounter a Nightmare boss, all future Nightmare enemies gain +10% damage dealt.","affinityNightmare",1,"",false),
+    Affinity("Nightmare","Each time you encounter a Nightmare boss, all future Nightmare enemies gain +20% damage dealt.","affinityNightmare",1,"",false),
 }
 
 local affinityTokens = {} --Stores a list of affinity (Strings) that count toward affinity bonuses without the player needing to have a hero of that type.
@@ -274,6 +265,79 @@ local occupiedHexs = {}
 local willBeAmbushed = false
 local threatLevel = 0 --(Can be 0-200, represents a %.)
 math.randomseed( os.time() )
+--MapEvent(eventName, eventDesc, eventChoice1, eventChoice1Desc,eventChoice1Callback, eventChoice2, eventChoice2Desc,eventChoice2Callback, eventChoice3, eventChoice3Desc,eventChoice3Callback)
+local gameEvents = {
+    MapEvent("Trail of Blood","Your party comes across a trail of blood. What would you like to do?","Explore the Path","[Starts a Battle. If you win, you will be able to recruit a hero.]",
+        function()
+            local willBeElite = RandomChance(threatLevel - 40)
+            GenerateEncounter(currentDungeonLevel, nil, willBeElite)
+            ToggleMapFrame(false)
+            CreateCombatDialog()
+            earnsHeroThisLevel = true
+        end,
+        "Ignore the Path",
+        "Continue adventuring and ignore the path.",
+        DoNothing
+    ),
+
+    MapEvent("Strange Caravan","Your party comes across a caravan of travelers from all origins. What would you like to do?","Trade","[Shop for items.]",
+        function()
+            CreateShopDialog()
+        end,
+        "Train with them",
+        "[Gain a free perk.]",
+        function()
+            GiveFreePerk()
+        end,
+        "Ask for Directions",
+        "[Reveals all hidden rooms.]",
+        function()
+            ExecuteCampsiteDecision(3)
+        end
+    ),
+
+    MapEvent("Wayward Shrine","Your party comes across a shrine. What do you do?","Honor it","[Gain 1 random Affinity bonus.]",
+        function()
+            AddRandomAffinityBonus()
+        end, "Destroy it", "[Gain 2 random Affinity bonuses. Generates +50% Threat.]",
+        function()
+            AddRandomAffinityBonus()
+            DCEI.Wait(1)
+            AddRandomAffinityBonus()
+            IncreasePlayerThreat(50)
+        end,"Loot it","[Gain 50 gold and a consumable item. Generates 15% Threat.]",
+        function()
+            playerGold = playerGold + 50
+            ClaimItem(GetRandomElement(shopItems))
+            UpdateGoldPanel()
+            IncreasePlayerThreat(15)
+        end
+    ),
+
+    MapEvent("Brave Warrior","Your party comes across a brave warrior; perhaps if you can prove your courage, he will join you.","Let out a warcry","[Recruit a Brawler hero. Generates +35% Threat.]",
+        function()
+            local berserker = HERO_TYPES[6]
+            local affin1 = berserker.affinities[1].name
+            DCEI.LogMessage("Got Brawler hero 1st affin: "..affin1)
+            local brawlers = GetRandomHeroesWithAffinity("Brawler")
+            DCEI.LogMessage("Presenting Brawler hero choice with count: "..GetTableSize(brawlers))
+            PresentHeroChoice(brawlers, function()
+                IncreasePlayerThreat(35)
+            end)
+        end, "Hire the Warrior", "[Recruit a random Brawler hero. Pay 50 gold.]",
+        function()
+            PresentHeroChoice(GetRandomHeroesWithAffinity("Brawler"), function()
+                playerGold = playerGold - 50
+            end)
+        end,"Train with the Warrior","[Gain a free perk.]",
+        function()
+            GiveFreePerk()
+        end
+    ),
+}
+
+local testEventID = 4
+local displayedEvents = {}
 -- TRIGGERS
 
 
@@ -340,6 +404,17 @@ function PartyHasHero(heroType)
     return false
 end
 
+function GetRandomAffinity()
+    local randomIndex = GetRandomNumber(1,GetTableSize(AFFINITIES)-2)--Subtract 2 for the "bonus" and "Nightmare" affinities, which aren't real bonuses.
+    return AFFINITIES[randomIndex]
+end
+
+function AddRandomAffinityBonus()
+    local affinity = GetRandomAffinity()
+    ShowRelevantText("+ "..affinity.name.." Bonus")
+    table.insert(affinityTokens,affinity.name)
+    UpdateActiveAffinities()
+end
   
 function GetAdjacentHeroUnits(sourceUnit)
     local returnList = {}
@@ -902,6 +977,8 @@ function GenerateMap(floorID)
     exploredRooms = {}
     map = {}
     roomTypes = {}
+    timesNightmareUpdated = 0
+    roomsClearedThisFloor = 0
     distanceFromRoomToStart = {}
     
     recentlyPurchasedItems = {}
@@ -909,7 +986,12 @@ function GenerateMap(floorID)
     local isTopFloor = floorID == currentDungeonFloors
     local returnList = {}
     local possibleRooms = {}
-    threatLevel = math.ceil(threatLevel * 0.6)
+    if(threatLevel < 100) then
+        threatLevel = math.ceil(threatLevel * 0.6)
+    else
+        threatLevel = math.ceil(threatLevel * 0.75)
+    end
+    
     
     for index = 1, 25 do
         table.insert(possibleRooms,index)
@@ -1129,7 +1211,7 @@ function GenerateMap(floorID)
     for i=1,GetTableSize(returnList) do
         DCEI.LogMessage(" >>>  Got room ID:"..returnList[i])
     end
-    local furthestRoom = topRoom
+    local furthestRoom = 0
     local furthestDistance = 0
     foreach(returnList, function(roomID)
         local dist = GetMapDistance(starterRoom,roomID,returnList)
@@ -1243,11 +1325,12 @@ function GenerateMap(floorID)
     local passedValidation = false
 
     while(passedValidation == false and checks < 20) do
+        checks = checks+1
         passedValidation = MapDistanceValidation(returnList)
         DCEI.LogMessage("Doing map vaildation... pass: "..checks)
-        checks = checks+1
+        
     end
-
+    furthestDistance = 0
     foreach(returnList, function(roomID)
 
         --[[local distance = distanceFromRoomToStart[roomID]
@@ -1274,13 +1357,15 @@ function GenerateMap(floorID)
         
         end)]]
         --local dist = GetMapDistance(starterRoom,roomID,returnList)
-        furthestDistance = 0
-        if(distanceFromRoomToStart[roomID] >= furthestDistance) then
+        
+        local dist = distanceFromRoomToStart[roomID]
+        if(dist >= furthestDistance) then
             furthestDistance = dist
             furthestRoom = roomID
+            DCEI.LogMessage("Got furthest room from start to be room ID:"..roomID.." with distance:"..furthestDistance)
         end
         --distanceFromRoomToStart[roomID] = dist
-        if(GetRoomType(roomID) == "Stairs" or (GetRoomType(roomID)== "Treasure" and RandomChance(20)) or (GetRoomType(roomID)== "Elite" and RandomChance(65)) or 
+        if(GetRoomType(roomID) == "Stairs" or (GetRoomType(roomID)== "Treasure" and RandomChance(20)) or (GetRoomType(roomID)== "Elite" and RandomChance(100-(10*heroicLevel))) or 
         (GetRoomType(roomID)== "Combat" and RandomChance(70)) or (GetRoomType(roomID)== "Campsite" and RandomChance(90)) or (GetRoomType(roomID)== "Shop" and RandomChance(85))
             
         )then
@@ -1288,8 +1373,11 @@ function GenerateMap(floorID)
         end
         --DCEI.LogMessage("Got room :"..roomID.." distance from start to be: "..dist)
     end)
-    SetRoomType(furthestRoom,"Stairs")
-    ForceExploreRoom(furthestRoom)
+    if(isTopFloor == false) then
+        SetRoomType(furthestRoom,"Stairs")
+        ForceExploreRoom(furthestRoom)
+    end
+    
     if(GetRoomCount("Stairs",returnList) < 1 and isTopFloor == false) then
         SetRoomType(furthestRoom,"Stairs")
         --DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs! Got stairs count: "..GetRoomCount("Stairs"))
@@ -1303,14 +1391,14 @@ function GenerateMap(floorID)
             DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs!")
         end
     end
-    local distFromStartToStairs = GetMapDistance(starterRoom,topRoom,returnList)
+    --[[local distFromStartToStairs = GetMapDistance(starterRoom,topRoom,returnList)
     DCEI.LogMessage("Got Map distance: "..distFromStartToStairs)
 
     local distFromStartToCenter = GetMapDistance(starterRoom,13,returnList)
     DCEI.LogMessage("Got Center Map distance: "..distFromStartToCenter)
 
     local distFromStartToRand = GetMapDistance(starterRoom,randomRoom,returnList)
-    DCEI.LogMessage("Got Random Map point: "..forcedShopRoom.." distance: "..distFromStartToRand)
+    DCEI.LogMessage("Got Random Map point: "..forcedShopRoom.." distance: "..distFromStartToRand)]]
     return returnList
 
 end
@@ -1668,11 +1756,14 @@ function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush, isNight
     if(roomsCleared < 5 and isElite == false) then
         difficulty = difficulty * 0.65
     end
+    if(difficulty > (5+heroicLevel)*PARTY_SIZE and PARTY_SIZE <= 3) then
+        difficulty = (5+heroicLevel)*PARTY_SIZE
+    end
     if(requiredUnits == nil) then requiredUnits = {} end
     DCEI.LogMessage("Generating encounter with difficulty: "..difficulty)
     if(isNightmare) then
         DCEI.LogMessage("Generating NIGHTMARE encounter!")
-        isElite = RandomChance( math.ceil(threatLevel+5) - 100)
+        isElite = RandomChance( math.ceil(threatLevel+5) - 110)
         if(isElite) then
             table.insert(requiredUnits, "Deathspeaker")
         end
@@ -1783,6 +1874,7 @@ function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush, isNight
         end)
     end
     if(isNightmare) then
+        DCEI.LogMessage("Applying "..(GetAffinityTokenCount("Nightmare")).."Nightmare stacks to enemies!")
         foreach(spawnedEnemies, function(unit)
             DCEI.ApplyBehaviorCount(unit,"Nightmare",GetAffinityTokenCount("Nightmare")-1)
         end)
@@ -2336,7 +2428,7 @@ function OnBattleFinished(win)
     finished = true
     lastStandActive = false
     campfireActive = false
-    
+    doublePower = false
     ClearTooltips()
     PauseAllUnits()
     ClearInspectDialog()
@@ -2346,6 +2438,7 @@ function OnBattleFinished(win)
     if(win == true) then
         if(willBeAmbushed == false) then
             roomsCleared = roomsCleared + 1
+            roomsClearedThisFloor = roomsClearedThisFloor + 1
         end
         willBeAmbushed = false
         if(roomsCleared == 1) then
@@ -2365,7 +2458,7 @@ function OnBattleFinished(win)
         DCEI.ShowFeedbackMessage("<size=45>Victory!")
         PlaySound("[Sound] Battle Won")
         DCEI.Wait(1)
-        local threatIncrease = 3 + roomDifficulty[currentRoom]
+        local threatIncrease = 3 + currentFloor + roomDifficulty[currentRoom]
         IncreasePlayerThreat(threatIncrease)
         --ShowRelevantText("<color=red>++ "..threatIncrease.."% Threat")
         
@@ -2501,13 +2594,13 @@ function CheckVictory()
 
     end
     if(questType == "Recruitment") then
-        return (currentFloor == currentDungeonFloors and (GetRoomTypeCount("Combat") <= 1 or GetClearedRoomsPercent() >= 80))
+        return (currentFloor >= currentDungeonFloors and (GetRoomTypeCount("Combat") <= 1 or GetClearedRoomsPercent() >= 80))
     elseif(questType == "Conquest") then
-        return (currentFloor == currentDungeonFloors and GetRoomTypeCount("Combat") == 0 and GetRoomTypeCount("Elite") == 0)
+        return (currentFloor >= currentDungeonFloors and GetRoomTypeCount("Combat") == 0 and GetRoomTypeCount("Elite") == 0)
     elseif(questType == "Boss") then
-        return (currentFloor == currentDungeonFloors and GetRoomTypeCount("Boss") == 0)
+        return (currentFloor >= currentDungeonFloors and GetRoomTypeCount("Boss") == 0)
     else
-        return (currentFloor == currentDungeonFloors and GetRoomTypeCount("Combat") == 0 and GetRoomTypeCount("Elite") == 0 and GetRoomTypeCount("Boss") == 0)
+        return (currentFloor >= currentDungeonFloors and GetRoomTypeCount("Combat") == 0 and GetRoomTypeCount("Elite") == 0 and GetRoomTypeCount("Boss") == 0)
     end
     
     return false
@@ -2517,8 +2610,9 @@ end
 function HandleHeroChoice()
     local heroChoiceThisLevel = false
     for index = 1, GetTableSize(HERO_CHOICE_LEVELS) do
-        if(HERO_CHOICE_LEVELS[index] == roomsCleared and PARTY_SIZE < 8) then
+        if((HERO_CHOICE_LEVELS[index] == roomsCleared or earnsHeroThisLevel) and PARTY_SIZE < 8) then
             heroChoiceThisLevel = true
+            earnsHeroThisLevel = false
             PresentHeroChoice(GetRandomChoosableHeroes(),
             function()
                 OnHeroChoiceMadeOrSkipped()
@@ -2549,7 +2643,7 @@ function OnHeroChoiceMadeOrSkipped()
     if(threatLevel >= 100) then
         HandleNightmareUpdate()
     end
-    
+    earnsHeroThisLevel = false
     DCEI.ShowFeedbackMessage("Choose a room to move to!")
     
 end
@@ -2561,6 +2655,40 @@ function GetRandomChoosableHeroes()
             table.insert(possibleChoices, index) --Add every possible index as a potential choice.
         else
             DCEI.LogMessage("Will not add hero type: "..HERO_TYPES[index].name.." to the hero pool because the player already has a hero of that type!")
+        end
+        
+    end
+    local returnValue = {}
+    for choiceIndex = 1, 3 do --Choose 3 heroes
+        for tableIndex = 1, GetTableSize(possibleChoices) do --Choose 3 heroes
+            local randomIndex = GetRandomIndex(possibleChoices)
+            local randomChoice = possibleChoices[randomIndex] -- This is the index of the hero to choose from HERO_TYPES.
+            --DCEI.LogMessage("Got RANDOM hero index: "..randomChoice)
+            table.insert(returnValue, HERO_TYPES[randomChoice])
+            table.remove( possibleChoices, randomIndex )
+
+        end
+    end
+    return returnValue
+end
+
+function GetAffinityByName(affinityName)
+    local returnValue = nil
+    foreach(AFFINITIES, function(affinity)
+        if(affinity.name == affinityName) then returnValue = affinity end
+        
+    end)
+    return returnValue
+end
+
+function GetRandomHeroesWithAffinity(affinityName)
+    local possibleChoices = {}
+    local affinity = GetAffinityByName(affinityName)
+    DCEI.LogMessage("Got affinity:"..affinity.name.." from name: "..affinityName)
+    for index = 1, GetTableSize(HERO_TYPES) do
+        if(TableContains(HERO_TYPES[index].affinities,affinity) == true) then
+            DCEI.LogMessage("Recognized hero:"..HERO_TYPES[index].name.." as hero with affinity: "..affinityName)
+            table.insert(possibleChoices,index)
         end
         
     end
@@ -3005,7 +3133,7 @@ function CreateAffinityFrame()
 end
 
 function OnItemSelected(slot)
-    DCEI.LogMessage("OnItemSelected called for slot: "..slot)
+    --DCEI.LogMessage("OnItemSelected called for slot: "..slot)
     local itemInSlot = inventory[slot]
     if(itemInSlot ~= nil) then
         ExpectTarget(ITEM_CASTER,itemInSlot.name)
@@ -3865,6 +3993,13 @@ function GetRandomPerksToShow()
     return returnPerks
 end
 
+function GiveFreePerk()
+    ToggleMapFrame(false)
+    CreatePerkDialog(GetRandomPerksToShow(), function()
+        OnShoppingEnded()
+    end)
+end
+
 
 --Called when heroes are spawned in but before battle begins. Handles any perks/affinities that should be executed before combat start.
 function ApplyPreBattlePerks()
@@ -3874,7 +4009,7 @@ function ApplyPreBattlePerks()
             --DCEI.LogMessage("Applying pre-battle perk: GRIT!")
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit) and (DCEI.UnitName(partyUnit) == "Berserker" or DCEI.UnitName(partyUnit) == "Rifleman")) then
-                    DCEI.LogMessage("(Grit) Applying Armored behavior to unit:"..DCEI.UnitName(partyUnit))
+                    --DCEI.LogMessage("(Grit) Applying Armored behavior to unit:"..DCEI.UnitName(partyUnit))
                     DCEI.ApplyBehaviorWithDuration(partyUnit,"Armored",90)
                     --table.insert(affinityTokens, "Armored")
                 end
@@ -3888,7 +4023,7 @@ end
 
 -- Called at the start of every battle, applies any behavior/battle specific perks.
 function ApplyBattlePerks()
-    affinityTokens = {}
+    --affinityTokens = {}
     foreach(AFFINITIES, function(affinity)
         if(affinity.bonusActive == true) then
             if(affinity.name == "Specialist") then
@@ -3945,7 +4080,7 @@ function ApplyBattlePerks()
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit) and eliteFight == true) then
                     DCEI.ApplyBehavior(partyUnit,"Giantslayer")
-                    DCEI.LogMessage("Applying Giantslayer to unit:"..DCEI.UnitName(partyUnit))
+                    --DCEI.LogMessage("Applying Giantslayer to unit:"..DCEI.UnitName(partyUnit))
                 end
             end)
             
@@ -3954,7 +4089,7 @@ function ApplyBattlePerks()
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit)) then
                     DCEI.ApplyBehavior(partyUnit,"Persistence")
-                    DCEI.LogMessage("Applying Persistence to unit:"..DCEI.UnitName(partyUnit))
+                    --DCEI.LogMessage("Applying Persistence to unit:"..DCEI.UnitName(partyUnit))
                 end
             end)
             
@@ -3963,7 +4098,7 @@ function ApplyBattlePerks()
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit)) then
                     DCEI.ApplyBehavior(partyUnit,"Fleetfoot")
-                    DCEI.LogMessage("Applying Fleetfoot to unit:"..DCEI.UnitName(partyUnit))
+                    --DCEI.LogMessage("Applying Fleetfoot to unit:"..DCEI.UnitName(partyUnit))
                 end
             end)
             
@@ -3972,7 +4107,7 @@ function ApplyBattlePerks()
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit)) then
                     DCEI.ApplyBehavior(partyUnit,"Absolute Focus")
-                    DCEI.LogMessage("Applying Absolute Focus to unit:"..DCEI.UnitName(partyUnit))
+                    --DCEI.LogMessage("Applying Absolute Focus to unit:"..DCEI.UnitName(partyUnit))
                 end
             end)
             
@@ -4261,7 +4396,7 @@ function CreateShopDialog(callback)
 
 
 
-    
+    ToggleMapFrame(false)
     return {
         frame = container,
     }
@@ -4993,6 +5128,9 @@ function CreatePowerBar()
     DCEI.SetMinSize(powerBarFillBar, dialogX, dialogY)
     DCEI.SetBackgroundImageColor(powerBarFillBar, 246, 225, 87, 255)
     
+    DCEI.SetTooltipText(powerBarFillBar,"As your team engages in combat, you earn team experience. Once this bar is full, you will be able to choose a perk for your team!")
+    DCEI.SetTooltipText(barBackground,"As your team engages in combat, you earn team experience. Once this bar is full, you will be able to choose a perk for your team!")
+
     local identifier = "mainUnit"
     DCEI.SetBackgroundImageFillAmountExpression(powerBarFillBar, identifier .. ".Mana.Fraction")
     DCEI.BindUnit(identifier, ITEM_CASTER)
@@ -5025,7 +5163,7 @@ end
 
 function CheckPowerGains()
     if(battleOngoing == false) then return end
-    local gainedPower = 1 + (recentElitesKilled * 20)
+    local gainedPower = 2 + (recentElitesKilled * 20)
     recentElitesKilled = 0
     local options = { 
         offset = {
@@ -5034,18 +5172,15 @@ function CheckPowerGains()
             front = 0
         }
     }
-    local powerPerHero = 3
+    local powerPerHero = 2.5
     if(PARTY_SIZE >= 4) then
-        powerPerHero = 2.5
-    end
-    if(PARTY_SIZE >= 6) then
-        powerPerHero = 1.83
+        powerPerHero = (8 / PARTY_SIZE)
     end
     if(PARTY_SIZE == 2) then
-        powerPerHero = 4
+        powerPerHero = 3
     end
     if(PARTY_SIZE == 1) then
-        powerPerHero = 7
+        powerPerHero = 6
     end
     if(doublePower == true) then
         powerPerHero = powerPerHero * 2
@@ -5143,11 +5278,28 @@ function UpdateGoldPanel()
     DCEI.SetText(goldIndicatorText, ""..playerGold)
 end
 
+function GetRandomEvent()
+    local eventToShow = GetRandomElement(gameEvents)
+    if(TableContains(displayedEvents, eventToShow) == true) then
+        eventToShow = GetRandomElement(gameEvents)
+    end
+    if(TableContains(displayedEvents, eventToShow) == true) then
+        eventToShow = GetRandomElement(gameEvents)
+    end
+    if(TableContains(displayedEvents, eventToShow) == true) then
+        eventToShow = GetRandomElement(gameEvents)
+    end
+    return eventToShow
+end
+
 local eventPanel = nil
 function ShowEvent(eventToShow)
     if(eventPanel ~= nil) then
         DCEI.Destroy(eventPanel)
     end
+    table.insert(displayedEvents, eventToShow)
+    
+    ToggleMapFrame(false)
     local container = DCEI.NewFrame(root)
     eventPanel = container
 
@@ -5227,7 +5379,9 @@ function ShowEvent(eventToShow)
         DCEI.SetVerticalOffsetInParent(text, 0)
         DCEI.SetTextFontSize(text, 22)
         DCEI.SetSize(text,buttonX,buttonY)
+        DCEI.SetTooltipText(button,HighlightKeywords(eventToShow.choiceDescriptions[buttonID]))
         DCEI.SetOnClickCallback(button, function()
+            DCEI.SetTooltipText(button,"")
             DCEI.Destroy(eventPanel)
             OnShoppingEnded()
             eventToShow.choiceCallbacks[buttonID]()
@@ -5500,7 +5654,7 @@ local recentlyConvertedNightmareRooms = {}
 function HandleNightmareUpdate()
     recentlyConvertedNightmareRooms = {}
     nightmareUpdating = true
-    local nightmarePasses = GetRandomNumber(1+timesNightmareUpdated, 2+timesNightmareUpdated)
+    local nightmarePasses = GetRandomNumber(1, 1+timesNightmareUpdated)
     ShowOverheadMessage("You are being pursued...",4.5,{74/255, 0/255,171/255, 255/255})
     DCEI.PlaySound("desecrate_impact")
     DCEI.Wait(1)
@@ -5659,6 +5813,7 @@ end
 function IncreasePlayerThreat(modifyValue)
     threatLevel = threatLevel + modifyValue
     ShowRelevantText("<color=red>+ "..modifyValue.."% Threat")
+    UpdateMapPanel()
 end
 
 function OnRoomEnter(value)
@@ -5676,7 +5831,7 @@ function OnRoomEnter(value)
             
         else
             --ShowRelevantText("+Threat")
-            IncreasePlayerThreat(GetRandomNumber(6,10))
+            IncreasePlayerThreat(GetRandomNumber(6+currentFloor,10+currentFloor))
             OnShoppingEnded()
         end
     else
@@ -5697,7 +5852,7 @@ function OnRoomEnter(value)
             CreateShopDialog()
         elseif(roomType == "Event") then 
             DCEI.Wait(1.0)
-            ShowEvent(gameEvents[1])
+            ShowEvent(GetRandomEvent())
         elseif(roomType == "Campsite") then
             DCEI.Wait(1.0) 
             CreateThreeChoiceDialog("Campsite","You've arrived at a campsite. You can either restore health to your heroes, train for the next battle, or scout all rooms in this area.",
@@ -5719,8 +5874,12 @@ function OnRoomEnter(value)
         elseif(roomType == "Stairs") then 
             exploredRooms = {}
             clearedRooms = {}
+            if(roomsClearedThisFloor <= 5 and dungeonData.difficulty > 3) then
+                IncreaseDungeonLevel()
+                IncreaseDungeonLevel()
+            end
             IncreaseDungeonLevel()
-            IncreaseDungeonLevel()
+            --IncreaseDungeonLevel()
             --IncreaseDungeonLevel()
             CreateMapPanel(currentFloor+1)
             OnShoppingEnded()
@@ -5982,7 +6141,7 @@ function StartGame()
         PresentHeroChoice(GetRandomChoosableHeroes(),
         function ()
             --GenerateEncounter(1,{"Deathspeaker"})
-            ShowEvent(gameEvents[1])
+            ShowEvent(gameEvents[testEventID])
             if(settings.helpTips == true) then
                 DCEI.ShowMessageWithButtonText("Combat", "Before combat, you can click on enemy units to see their special abilities and traits.\n\nOptionally, you can also reposition your units before every battle by clicking the reposition button in the lower right, then clicking and dragging on the unit you want to move. Positioning is key to protecting key units, or avoiding dangerous enemies.", "Got it!")  
             end

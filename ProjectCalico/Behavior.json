@@ -814,10 +814,10 @@
                     "multiplierFactor": 0.1
                 },
                 "weaponDamageModifier": {
-                    "multiplierFactor": 0.1
+                    "multiplierFactor": 0.2
                 },
                 "abilityDamageModifier": {
-                    "multiplierFactor": 0.1
+                    "multiplierFactor": 0.2
                 }
             }
         },
