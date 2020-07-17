@@ -272,6 +272,35 @@
                 "invulerable": 2
             },
             "chargeIgnoreCooldown": true
+        },
+        "Poison Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Poison Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Mobility Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Mobility Potion",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 5
+                }
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
         }
     }
 }

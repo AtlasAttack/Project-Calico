@@ -1,5 +1,16 @@
 {
     "weapons": {
+        "Abomination Claw": {
+            "parent": "Legion Sword",
+            "effectName": "Abomination Claw Damage",
+            "stats": {
+                "preSwing": 0.5,
+                "backSwing": 0.5,
+                "period": 1,
+                "range": 0.75,
+                "scanRange": 25
+            }
+        },
         "Alchemist Throw Potion": {
             "parent": "_StandardRangedWeapon",
             "effectName": "Alchemist Launch Missile",
@@ -181,17 +192,6 @@
             "effectName": "Warthog Bite Damage",
             "stats": {
                 "range": 0.3,
-                "scanRange": 25
-            }
-        },
-        "Abomination Claw": {
-            "parent": "Legion Sword",
-            "effectName": "Abomination Claw Damage",
-            "stats": {
-                "preSwing": 0.5,
-                "backSwing": 0.5,
-                "period": 1,
-                "range": 0.75,
                 "scanRange": 25
             }
         }

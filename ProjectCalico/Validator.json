@@ -724,6 +724,38 @@
         }
     },
     "expressions": {
+        "2X Damage to Unarmored": {
+            "multiply": {
+                "expressions": [
+                    {
+                        "subtract": {
+                            "left": {
+                                "value": {
+                                    "constant": {
+                                        "int32Value": 1
+                                    }
+                                }
+                            },
+                            "right": {
+                                "value": {
+                                    "behaviorStackCount": {
+                                        "unit": 2,
+                                        "behavior": "Armored"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "value": {
+                            "damageAmount": {
+                                "multiplier": 1
+                            }
+                        }
+                    }
+                ]
+            }
+        },
         "AoE Damage": {
             "multiply": {
                 "expressions": [
@@ -821,38 +853,6 @@
                         }
                     },
                     {}
-                ]
-            }
-        },
-        "2X Damage to Unarmored": {
-            "multiply": {
-                "expressions": [
-                    {
-                        "subtract": {
-                            "left": {
-                                "value": {
-                                    "constant": {
-                                        "int32Value": 1
-                                    }
-                                }
-                            },
-                            "right": {
-                                "value": {
-                                    "behaviorStackCount": {
-                                        "unit": 2,
-                                        "behavior": "Armored"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "value": {
-                            "damageAmount": {
-                                "multiplier": 1
-                            }
-                        }
-                    }
                 ]
             }
         }

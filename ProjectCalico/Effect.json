@@ -52,6 +52,19 @@
                 ]
             }
         },
+        "Abomination Claw Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 12,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "2X Damage to Unarmored"
+                        }
+                    }
+                ]
+            }
+        },
         "Alchemist Launch Missile": {
             "launchMissile": {
                 "targetType": 1,
@@ -1273,7 +1286,7 @@
             "applyBehavior": {
                 "behavior": "Stealth",
                 "stackCount": 1,
-                "duration": 3
+                "duration": 5
             }
         },
         "Stealth Potion Search": {
@@ -1439,6 +1452,9 @@
                 "effect": "Warthog Charge Impact (Dummy)",
                 "launchLocation": 7,
                 "impactLocation": 1,
+                "impactOffset": {
+                    "forward": -0.5
+                },
                 "mover": "Heavy Arrow Mover"
             }
         },
@@ -1549,17 +1565,35 @@
                 "terminateOnPeriodicEffectSuccess": true
             }
         },
-        "Abomination Claw Damage": {
-            "damage": {
-                "whichUnit": 1,
-                "damageAmount": 12,
-                "expressions": [
-                    {
-                        "namedExpression": {
-                            "name": "2X Damage to Unarmored"
-                        }
+        "Mobility Potion": {
+            "applyBehavior": {
+                "behavior": "Mobile",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Poison Potion Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.15
                     }
-                ]
+                },
+                "maxUnitCount": 5,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Apply Poison"
             }
         }
     }

@@ -634,9 +634,12 @@
                 },
                 "health": {
                     "maxHealth": 70,
-                    "startHealth": 7,
+                    "startHealth": 70,
                     "regeneration": 1,
                     "regenerationDelay": 1
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 25
                 }
             },
             "references": {
@@ -681,6 +684,9 @@
                 "health": {
                     "maxHealth": 20,
                     "startHealth": 20
+                },
+                "unitBattleData": {
+                    "enemySearchRange": 25
                 }
             },
             "references": {
@@ -744,7 +750,9 @@
                     "Stealth Potion",
                     "Bomb Brew",
                     "Stun Potion",
-                    "Refresh Potion"
+                    "Refresh Potion",
+                    "Mobility Potion",
+                    "Poison Potion"
                 ],
                 "behaviorList": [
                     "Standard HelperTag"
@@ -888,6 +896,30 @@
                 ]
             },
             "hideUnitStatusBar": false
+        },
+        "Nightmare Abomination": {
+            "baseUnit": "Bone Archer",
+            "components": {
+                "unitStats": {
+                    "radius": 0.625,
+                    "selectable": true
+                },
+                "health": {
+                    "maxHealth": 180,
+                    "startHealth": 180
+                }
+            },
+            "references": {
+                "weaponList": [
+                    "Abomination Claw"
+                ],
+                "behaviorList": [
+                    "Elite",
+                    "Enemy Stat Modifier",
+                    "Start With 20 Block",
+                    "Gain Periodic Block (1 Per 5 Seconds)"
+                ]
+            }
         },
         "Point_Marker": {
             "baseUnit": "_StandardHelper"
@@ -1317,30 +1349,6 @@
             },
             "hideUnitStatusBar": false
         },
-        "zzz_BottomUnit": {},
-        "Nightmare Abomination": {
-            "baseUnit": "Bone Archer",
-            "components": {
-                "unitStats": {
-                    "radius": 0.625,
-                    "selectable": true
-                },
-                "health": {
-                    "maxHealth": 180,
-                    "startHealth": 180
-                }
-            },
-            "references": {
-                "weaponList": [
-                    "Abomination Claw"
-                ],
-                "behaviorList": [
-                    "Elite",
-                    "Enemy Stat Modifier",
-                    "Start With 20 Block",
-                    "Gain Periodic Block (1 Per 5 Seconds)"
-                ]
-            }
-        }
+        "zzz_BottomUnit": {}
     }
 }

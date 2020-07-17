@@ -363,6 +363,13 @@
                 }
             }
         },
+        "Gain Periodic Block (1 Per 5 Seconds)": {
+            "periodicInterval": 5,
+            "periodicEffect": "Apply 1 Block",
+            "behaviorValidatorsDisable": [
+                "TargetUnit Is Paused"
+            ]
+        },
         "Giantslayer": {
             "refreshStack": false,
             "maxStackCount": 3,
@@ -464,10 +471,10 @@
             "maxStackCount": 10,
             "modifiers": {
                 "weaponDamageTakenModifier": {
-                    "multiplierFactor": -0.05
+                    "multiplierFactor": -0.08
                 },
                 "abilityDamageTakenModifier": {
-                    "multiplierFactor": -0.05
+                    "multiplierFactor": -0.08
                 }
             }
         },
@@ -475,10 +482,10 @@
             "maxStackCount": 10,
             "modifiers": {
                 "weaponDamageModifier": {
-                    "multiplierFactor": 0.05
+                    "multiplierFactor": 0.08
                 },
                 "abilityDamageModifier": {
-                    "multiplierFactor": 0.05
+                    "multiplierFactor": 0.08
                 }
             }
         },
@@ -516,6 +523,23 @@
         "Melee": {},
         "Mobile": {},
         "Naturalist": {},
+        "Nightmare": {
+            "maxStackCount": 10,
+            "modifiers": {
+                "maxHealthModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "attackSpeedModifier": {
+                    "multiplierFactor": 0.1
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.2
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.2
+                }
+            }
+        },
         "Pacify Unit": {
             "modifiers": {
                 "flags": {
@@ -642,6 +666,12 @@
                     "count": 1
                 }
             ]
+        },
+        "Start With 20 Block": {
+            "duration": 2.25,
+            "periodicInterval": 0.1,
+            "periodicEffect": "Apply 1 Block",
+            "periodicEffectCount": 20
         },
         "Stasis": {
             "modifiers": {
@@ -798,35 +828,31 @@
                 }
             }
         },
-        "Start With 20 Block": {
-            "duration": 2.25,
-            "periodicInterval": 0.1,
-            "periodicEffect": "Apply 1 Block",
-            "periodicEffectCount": 20
-        },
-        "Nightmare": {
-            "maxStackCount": 10,
+        "AffinityBonus_Pyro": {
             "modifiers": {
-                "maxHealthModifier": {
-                    "multiplierFactor": 0.1
-                },
-                "attackSpeedModifier": {
-                    "multiplierFactor": 0.1
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0
                 },
                 "weaponDamageModifier": {
-                    "multiplierFactor": 0.2
+                    "multiplierFactor": 0.4
                 },
                 "abilityDamageModifier": {
-                    "multiplierFactor": 0.2
+                    "multiplierFactor": 0.4
                 }
             }
         },
-        "Gain Periodic Block (1 Per 5 Seconds)": {
-            "periodicInterval": 5,
-            "periodicEffect": "Apply 1 Block",
-            "behaviorValidatorsDisable": [
-                "TargetUnit Is Paused"
-            ]
+        "AffinityBonus_Aqua": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.4
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.4
+                }
+            }
         }
     }
 }

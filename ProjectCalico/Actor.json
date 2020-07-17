@@ -3083,8 +3083,9 @@
             "unitActor": {
                 "resource": {
                     "type": "Sound",
-                    "name": "beam_end_loop"
-                }
+                    "name": "tower_darkspire_deathbeam_loop_end"
+                },
+                "modelScale": 1.5
             }
         },
         "Enrage Apply Behavior SOp": {
@@ -4995,6 +4996,61 @@
                     "[STANDARD EFFECT] Ablaze Effect"
                 ],
                 "modelScale": 2.45
+            }
+        },
+        "Nightmare Abomination": {
+            "unitActor": {
+                "resource": {
+                    "type": "GpuAnimation",
+                    "name": "boss_plaguebringer"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "unitDeath": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "unitWeaponStart": {
+                                "weapon": "Abomination Claw"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "unitWeaponStop": {
+                                "weapon": "Abomination Claw"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "stopAnimation": {
+                                    "clipId": 0
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "eventMacros": [
+                    "Events StandardUnit DeathAnimation Decay",
+                    "[STANDARD EFFECT] Ablaze Effect"
+                ],
+                "modelScale": 1.1
             }
         },
         "Ooze Damage Action Actor": {
@@ -7848,59 +7904,127 @@
                 }
             }
         },
-        "Nightmare Abomination": {
-            "unitActor": {
+        "Poison Potion Search Launch Model": {
+            "modelActor": {
                 "resource": {
-                    "type": "GpuAnimation",
-                    "name": "boss_plaguebringer"
+                    "type": "Sound",
+                    "name": "tower_potiondealer_weapon_impact"
                 },
                 "events": [
                     {
                         "actorTerm": {
-                            "unitDeath": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {
-                                    "clipId": 1
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "unitWeaponStart": {
-                                "weapon": "Abomination Claw"
-                            }
+                            "actorCreate": {}
                         },
                         "actions": [
                             {
                                 "playAnimation": {
                                     "clipId": 0
                                 }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
                             }
                         ]
                     },
                     {
                         "actorTerm": {
-                            "unitWeaponStop": {
-                                "weapon": "Abomination Claw"
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
                             }
                         },
                         "actions": [
                             {
-                                "stopAnimation": {
-                                    "clipId": 0
-                                }
+                                "destroy": {}
                             }
                         ]
                     }
                 ],
-                "eventMacros": [
-                    "Events StandardUnit DeathAnimation Decay",
-                    "[STANDARD EFFECT] Ablaze Effect"
+                "hostSiteOperations": [
+                    "Poison Potion Search SOp"
+                ]
+            }
+        },
+        "Poison Potion Search Action Actor": {
+            "actionActor": {
+                "effect": "Poison Potion Search",
+                "launchModel": "Poison Potion Search Launch Model",
+                "launchModelDetached": true,
+                "impactModel": "Poison Potion Search Impact Model",
+                "impactModelDetached": true
+            }
+        },
+        "Poison Potion Search SOp": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0
+                }
+            }
+        },
+        "Poison Potion Search Impact Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_tower_potiondealer_mysterypotion_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
                 ],
-                "modelScale": 1.1
+                "hostSiteOperations": [
+                    "Poison Potion Search SOp"
+                ],
+                "modelScale": 1.25
             }
         }
     },

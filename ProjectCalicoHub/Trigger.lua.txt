@@ -1,3 +1,10 @@
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
+-- PROJECT CALICO HUB TRIGGERS
 local json = require "json"
 
 local CalicoCore = GameModules["ProjectCalico_MainMod"]
@@ -76,16 +83,19 @@ end
 
 
 local HERO_TYPES = {
-    HeroType("Legionnaire","Periodically spawns footmen to fight alongside him.","Grant all allies a shield and tempoararily increase their attack speed.","icon_spell_bolster"),
-    HeroType("Priest","None","Heal a target friendly unit.","icon_spell_holy_nova"),
-    HeroType("Assassin","If no heroes are adjacent to this one at the start of combat, the Assassin teleports to the furthest enemy and deals 60 damage.","The Assassin becomes stealthed for 6 seconds and gains +50% damage dealt, and -80% movement speed.","icon_ingame_hero_lava_chef"),
+    HeroType("Legionnaire","None.","Spawn 2 footmen to fight alongside you.","icon_ingame_towerslot_dragoonbarracks"),
+    HeroType("Priest","None,","Heal a target friendly unit.","icon_spell_holy_nova"),
+    HeroType("Assassin","At the start of combat, the Assassin teleports to the furthest 2 enemies and deals 35 damage to them.","The Assassin becomes stealthed for 6 seconds and gains +50% damage dealt, and -50% movement speed.","icon_ingame_hero_lava_chef"),
     HeroType("Alchemist","While at full health, the Alchemist always generates Team XP and her ability recharges twice as fast.","Channel for 2 seconds and brew a random potion.","icon_ingame_hero_crazy_alchemsit"),
     HeroType("Rifleman","The Rifleman's attacks deal large bonus damage to armored targets.","Deal moderate damage to all targets in front of the Rifleman, and stun them temporarily.","icon_ingame_towerslot_huntershut"),
     HeroType("Berserker","When between 30 and 70% health, the Berserker gains 50% attack speed, and takes 50% less damage.","The Berserker gains a large shield and increases his attack speed.","icon_enhance_flamecannon_furnace"),
     HeroType("Archer","Enemies hit by the Archer take additional damage from all sources. (Stacks up to 8 times).","Fire an arrow in a target direction which deals heavy damage to the first target hit. (Bonus damage to structures).","icon_ingame_towerslot_arrowtower"),
-    HeroType("Pyromancer","The Pyromancer's attacks mark a target. If a marked target dies, it explodes and deals damage to all nearby enemies.","Ignite a target location. Enemies at that location take continuous damage over time.","icon_spell_fireball")
- }
+    HeroType("Druid","The Druid and any allies affected by Regrowth are immune to poison and bleed.","Regrowth: Heal a target for 48 over 8 seconds. While healing, the target takes 25% reduced damage.","icon_ingame_towerslot_druidtower"),
+    HeroType("Pyromancer","The Pyromancer's attacks mark a target. If a marked target dies, it explodes and deals damage to all nearby enemies.","Ignite a target location. Enemies at that location take continuous damage over time.","icon_spell_fireball"),
+    HeroType("Knight","The Knight's attacks have a 20% chance to stun its targets for 1 second.","Nearby units gain +3 Block and 40% attack speed for 8 seconds.","icon_ingame_hero_last_dragoon"),
+    HeroType("Protector","The Protector has Taunt, and periodically forces nearby enemies to attack her.","Leap to a target location; nearby allies become Immune for 2 seconds, and the Protector gains a large shield for 10 seconds.","icon_ingame_hero_wind_knight"),
 
+}
 
 local conversationStart = {
     "Merek",
@@ -108,7 +118,7 @@ local currentConversationStage = 1
 local convoState = {0,0,0,0,0,0,0,0,0,0}
 local playerGold = 0
 local playerRubies = 0
-local playerLevel = 0--Not hooked up to saved values at the moment.
+local playerLevel = 1--Not hooked up to saved values at the moment.
 local playerXP = 0--Not hooked up to saved values at the moment.
 local retrievedGold = DCEI.Save.Get("PlayerGold") 
 local retrievedRubies = DCEI.Save.Get("PlayerRubies") 
@@ -235,6 +245,9 @@ function InitializePersistentData()
         end
     elseif(missionsPlayed <= 0) then
         DCEI.Save.Set("MissionsPlayed",missionsPlayed)
+        DCEI.Save.Set("PlayerRubies",0)
+        DCEI.Save.Set("PlayerLevel",playerLevel)
+        DCEI.Save.Set("PlayerXP",playerXP)
         DCEI.Save.Set("MissionsCompleted",missionsCompleted)
     end
 end

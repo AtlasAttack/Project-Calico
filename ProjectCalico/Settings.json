@@ -1,6 +1,6 @@
 {
     "settings": {
-        "version": "0.0.9",
+        "version": "0.0.12",
         "dependencies": [
             "Arcade/Core"
         ],
@@ -105,7 +105,9 @@
             "Regrowth Healing",
             "Taunt",
             "AffinityBonusDamage",
-            "Nightmare"
+            "Nightmare",
+            "AffinityBonus_Aqua",
+            "AffinityBonus_Pyro"
         ],
         "usedSoundAssets": [
             "desecrate_impact",
@@ -146,7 +148,21 @@
             "emptyRoom",
             "hiddenRoom",
             "affinityNightmare",
-            "placeholder"
+            "placeholder",
+            "startBattle_button",
+            "icon_ingame_campfire",
+            "icon_ingame_towerslot_dragoonbarracks",
+            "eventRoom",
+            "shopRoom",
+            "treasureRoom",
+            "item_omnistone",
+            "dungeonKey",
+            "item_seerseye",
+            "item_tome",
+            "item_tome2",
+            "item_tome3",
+            "icon_ingame_blackpotion",
+            ""
         ],
         "usedSpriteAssets": [
             "btn_rounded01"

@@ -192,6 +192,153 @@
                 }
             }
         },
+        "ChestOpeningFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_chosen_weapon_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "FailsafeRemove",
+                                    "duration": 5
+                                }
+                            },
+                            {
+                                "create": {
+                                    "actor": "ChestOpeningSFX"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "FailsafeRemove"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2.75
+            }
+        },
+        "ChestOpeningInstantSFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "tower_lighthouse_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        },
+        "ChestOpeningSFX": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "chest_open"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        },
+        "ChestOpeningSFX 2": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "zombie_mutant_explode"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "modelScale": 2
+            }
+        },
         "NPC1": {
             "unitActor": {
                 "resource": {
@@ -277,153 +424,6 @@
                     "name": "arrowtower_rank02"
                 },
                 "modelScale": 1.5
-            }
-        },
-        "ChestOpeningFX": {
-            "modelActor": {
-                "resource": {
-                    "type": "ParticleAnimation",
-                    "name": "vfx_chosen_weapon_impact"
-                },
-                "events": [
-                    {
-                        "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {}
-                            },
-                            {
-                                "createTimer": {
-                                    "name": "FailsafeRemove",
-                                    "duration": 5
-                                }
-                            },
-                            {
-                                "create": {
-                                    "actor": "ChestOpeningSFX"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "onTimer": {
-                                "name": "FailsafeRemove"
-                            }
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    }
-                ],
-                "modelScale": 2.75
-            }
-        },
-        "ChestOpeningSFX": {
-            "modelActor": {
-                "resource": {
-                    "type": "Sound",
-                    "name": "chest_open"
-                },
-                "events": [
-                    {
-                        "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    }
-                ],
-                "modelScale": 2
-            }
-        },
-        "ChestOpeningInstantSFX": {
-            "modelActor": {
-                "resource": {
-                    "type": "Sound",
-                    "name": "tower_lighthouse_impact"
-                },
-                "events": [
-                    {
-                        "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    }
-                ],
-                "modelScale": 2
-            }
-        },
-        "ChestOpeningSFX 2": {
-            "modelActor": {
-                "resource": {
-                    "type": "Sound",
-                    "name": "zombie_mutant_explode"
-                },
-                "events": [
-                    {
-                        "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    }
-                ],
-                "modelScale": 2
             }
         }
     },
