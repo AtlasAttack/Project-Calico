@@ -112,6 +112,10 @@ local conversationStart = {
         CreateEmbarkPanel()
     end
 }
+local BASE_XP_NEEDED = 200
+local BASE_XP_PER_LEVEL = 40
+local XP_GROWTH_FACTOR_PER_LEVEL = 1.1
+
 
 local currentConversation = nil
 local currentConversationStage = 1
@@ -125,6 +129,7 @@ local retrievedRubies = DCEI.Save.Get("PlayerRubies")
 local gainedGold = DCEI.Save.Get("EarnedGold")
 local missionsPlayed = DCEI.Save.Get("MissionsPlayed")
 local missionsCompleted = DCEI.Save.Get("MissionsCompleted")
+local heroData = nil
 if(missionsCompleted == nil) then
     missionsCompleted = 0
 end
@@ -211,8 +216,39 @@ MAIN_UI.selectedZone = 2
 function OnMapStart()
     core.HideDefaultUi()
     DCEI.PlayMusic("Hometown1")
-    
+    LoadMetadata()
     --DCEI.ShowSystemUi(1)
+end
+
+function LoadMetadata()
+    DCEI.LogMessage("Loading metadata!")
+    heroData = LoadHeroData()
+    
+
+    DCEI.Save.Commit()
+end
+
+function LoadHeroData()
+    local retrievedHeroData = {}
+    local index = 1
+    foreach(HERO_TYPES, function(hero)
+        retrievedHeroData[index] = {}
+        local heroName = hero.name
+        retrievedHeroData[index].name = heroName
+        retrievedHeroData[index].isUnlocked = DCEI.Save.Get(heroName.."_IsUnlocked")
+        if(retrievedHeroData[index].isUnlocked == nil) then
+            DCEI.Save.Set(heroName.."_IsUnlocked",false)
+            DCEI.Save.Set(heroName.."_Level",1)
+            DCEI.Save.Set(heroName.."_ShardProgress",0)
+        else
+            retrievedHeroData[index].level = DCEI.Save.Get(heroName.."_Level")
+            retrievedHeroData[index].shardProgress = DCEI.Save.Get(heroName.."_ShardProgress")
+        end
+        
+        
+        index = index + 1
+    end)
+    return retrievedHeroData
 end
 
 function InitializePersistentData()
@@ -356,6 +392,13 @@ function GetDifficultyNameFromLevel(modeType, levelNumber)
     
 end
 
+function GetXPForLevel(level)
+    return math.ceil(   (BASE_XP_NEEDED + (BASE_XP_PER_LEVEL * level)) * (XP_GROWTH_FACTOR_PER_LEVEL^level)   )
+end
+
+function GetShardsRequiredForLevel(level)
+    return (level * 2) - 2
+end
 
 function CreateMainDialog()
     local dialogX = 1600
@@ -394,14 +437,16 @@ function CreateMainDialog()
     DCEI.SetBackgroundImage(experienceBarFill,"bar_exp00_fill")
     DCEI.SetSize(experienceBarFill, 230, 40)
     DCEI.SetBackgroundImageFillHorizontal(experienceBarFill)
-    DCEI.SetBackgroundImageFillAmount(experienceBarFill,0.5)
+    
     
     local experienceText = DCEI.NewText(experienceBarBG)
-    DCEI.SetText(experienceText,"100000 / 220000")
+    local requiredXP = GetXPForLevel(playerLevel+1)
+    DCEI.SetText(experienceText,(playerXP).." / "..requiredXP)
     DCEI.SetTextFontSize(experienceText,20)
     DCEI.SetHorizontalOffsetInParent(experienceText,5)
     DCEI.SetMaxSize(experienceText,175,30)
     
+    DCEI.SetBackgroundImageFillAmount(experienceBarFill,(playerXP/requiredXP))
 
     local experienceFrame = DCEI.NewFrame(experienceBarBG)
     DCEI.SetBackgroundImage(experienceFrame,"icon_ingame_blue")
@@ -413,7 +458,7 @@ function CreateMainDialog()
     --DCEI.SetVerticalOffsetInParent(experienceFrame,-80)
 
     local levelText = DCEI.NewText(experienceFrame)
-    DCEI.SetText(levelText,"39")
+    DCEI.SetText(levelText,""..playerLevel)
     DCEI.SetTextFontSize(levelText,35)
     DCEI.SetVerticalOffsetInParent(levelText,0)
     
@@ -698,7 +743,9 @@ function CreateMainDialog()
         OnEmbarkButtonClick()
     end)
 
-
+    local highlight = DCEI.NewHighlight(button)
+    --DCEI.SetMatchParent(highlight,true,true)
+    DCEI.SetSize(highlight,buttonX*2, buttonY*1.2)
 
     local buttonText = DCEI.NewText(button)
     DCEI.SetText(buttonText,"Embark")
@@ -905,13 +952,20 @@ function CreateHeroesUI()
             DCEI.SetBackgroundImage(heroBarFill,"bar_energy_fill")
             DCEI.SetSize(heroBarFill, barDimensions.x, barDimensions.y)
             DCEI.SetBackgroundImageFillHorizontal(heroBarFill)
-            DCEI.SetBackgroundImageFillAmount(heroBarFill,0.5)
+            
     
             local heroBarText = DCEI.NewText(heroBarBG)
-            DCEI.SetText(heroBarText,"5 / 14")
+            if(heroID <= heroCount) then
+                DCEI.SetText(heroBarText,(heroData[heroID].shardProgress).." / "..GetShardsRequiredForLevel(heroData[heroID].level+1))
+                DCEI.SetBackgroundImageFillAmount(heroBarFill,(heroData[heroID].shardProgress)/(GetShardsRequiredForLevel(heroData[heroID].level+1)))
+            else
+                DCEI.SetActive(heroBarText,false)
+            end
+            
             DCEI.SetTextFontSize(heroBarText,15)
             --DCEI.SetHorizontalOffsetInParent(experienceText,5)
             DCEI.SetMaxSize(heroBarText,barDimensions.x,barDimensions.y)
+            
 
             local heroLevelTextBG = DCEI.NewFrame(heroBarBG)
             DCEI.SetBackgroundImage(heroLevelTextBG,"bar_exp01_empty")
@@ -920,11 +974,11 @@ function CreateHeroesUI()
             DCEI.SetSize(heroLevelTextBG,barDimensions.x-10,barDimensions.y)
 
             local heroLevelText = DCEI.NewText(heroLevelTextBG)
-            DCEI.SetText(heroLevelText,"<color=yellow>Level 8")
+            DCEI.SetText(heroLevelText,"<color=yellow>Level "..(heroData[heroID].level))
             DCEI.SetTextFontSize(heroLevelText,15)
             DCEI.SetMaxSize(heroLevelText,barDimensions.x,barDimensions.y)
             
-            if(heroID <= heroCount) then
+            if(heroID <= heroCount --[[and heroData[heroID].isUnlocked == true]]) then
                 local hero = HERO_TYPES[heroID]
                 DCEI.SetBackgroundImage(heroFrame, hero.image)
                 DCEI.SetActive(heroOverlayIcon, false)
