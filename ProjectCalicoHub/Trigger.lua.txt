@@ -792,6 +792,9 @@ function CreateMainDialog()
         MAIN_UI.SetZonePanelActive(false)
         CreateLootUI()
     end)
+    --Disable for no loot.
+    DCEI.EnableButton(button,false)
+    DCEI.SetTooltipText(button, "You don't have any chests.")
 
     buttonText = DCEI.NewText(button)
     DCEI.SetText(buttonText,"Loot")
@@ -819,6 +822,10 @@ function CreateMainDialog()
     DCEI.SetText(buttonText,"Relics")
     DCEI.SetTextFontSize(buttonText,textFontSize)
     DCEI.SetVerticalOffsetInParent(buttonText,buttonY*0.75)
+
+    --DisableRelics button
+    DCEI.EnableButton(button,false)
+    DCEI.SetTooltipText(button, "You haven't collected any relics.")
 
     buttonIcon = DCEI.NewFrame(button)
     DCEI.SetBackgroundImage(buttonIcon,"icon_catalyst_main_item3_blue_02")
@@ -974,7 +981,10 @@ function CreateHeroesUI()
             DCEI.SetSize(heroLevelTextBG,barDimensions.x-10,barDimensions.y)
 
             local heroLevelText = DCEI.NewText(heroLevelTextBG)
-            DCEI.SetText(heroLevelText,"<color=yellow>Level "..(heroData[heroID].level))
+            if(heroID <= heroCount) then
+                DCEI.SetText(heroLevelText,"<color=yellow>Level "..(heroData[heroID].level))
+            end
+            
             DCEI.SetTextFontSize(heroLevelText,15)
             DCEI.SetMaxSize(heroLevelText,barDimensions.x,barDimensions.y)
             
