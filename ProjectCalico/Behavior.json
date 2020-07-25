@@ -71,6 +71,19 @@
                 }
             }
         },
+        "AffinityBonus_Aqua": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.4
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.4
+                }
+            }
+        },
         "AffinityBonus_Armored": {
             "startEffect": "Armored Affinity Apply Set",
             "periodicInterval": 6,
@@ -104,6 +117,19 @@
             }
         },
         "AffinityBonus_Naturalist": {},
+        "AffinityBonus_Pyro": {
+            "modifiers": {
+                "manaRegenerationModifier": {
+                    "multiplierFactor": 0
+                },
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.4
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.4
+                }
+            }
+        },
         "AffinityBonus_Ranger": {},
         "AffinityBonus_Specialist": {},
         "AffinityBonus_Spellcaster": {
@@ -560,6 +586,15 @@
                     "suppressWeapon": true,
                     "suppressAbility": true,
                     "suppressTurning": false
+                },
+                "healthRegenerationModifier": {
+                    "multiplierFactor": -1
+                },
+                "manaRegenerationModifier": {
+                    "multiplierFactor": -1
+                },
+                "shieldRegenerationModifier": {
+                    "multiplierFactor": -1
                 }
             }
         },
@@ -825,32 +860,6 @@
                 },
                 "moveSpeedModifier": {
                     "multiplierFactor": 2
-                }
-            }
-        },
-        "AffinityBonus_Pyro": {
-            "modifiers": {
-                "manaRegenerationModifier": {
-                    "multiplierFactor": 0
-                },
-                "weaponDamageModifier": {
-                    "multiplierFactor": 0.4
-                },
-                "abilityDamageModifier": {
-                    "multiplierFactor": 0.4
-                }
-            }
-        },
-        "AffinityBonus_Aqua": {
-            "modifiers": {
-                "manaRegenerationModifier": {
-                    "multiplierFactor": 0
-                },
-                "weaponDamageModifier": {
-                    "multiplierFactor": 0.4
-                },
-                "abilityDamageModifier": {
-                    "multiplierFactor": 0.4
                 }
             }
         }

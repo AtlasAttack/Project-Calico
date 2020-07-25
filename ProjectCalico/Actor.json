@@ -5262,6 +5262,129 @@
                 }
             }
         },
+        "Poison Potion Search Action Actor": {
+            "actionActor": {
+                "effect": "Poison Potion Search",
+                "launchModel": "Poison Potion Search Launch Model",
+                "launchModelDetached": true,
+                "impactModel": "Poison Potion Search Impact Model",
+                "impactModelDetached": true
+            }
+        },
+        "Poison Potion Search Impact Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_tower_potiondealer_mysterypotion_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "Poison Potion Search SOp"
+                ],
+                "modelScale": 1.5
+            }
+        },
+        "Poison Potion Search Launch Model": {
+            "modelActor": {
+                "resource": {
+                    "type": "Sound",
+                    "name": "tower_potiondealer_weapon_impact"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "Poison Potion Search SOp"
+                ]
+            }
+        },
+        "Poison Potion Search SOp": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0
+                }
+            }
+        },
         "Potion Missile": {
             "unitActor": {
                 "resource": {
@@ -7904,115 +8027,16 @@
                 }
             }
         },
-        "Poison Potion Search Launch Model": {
-            "modelActor": {
-                "resource": {
-                    "type": "Sound",
-                    "name": "tower_potiondealer_weapon_impact"
-                },
-                "events": [
-                    {
-                        "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {
-                                    "clipId": 0
-                                }
-                            },
-                            {
-                                "createTimer": {
-                                    "name": "duration",
-                                    "duration": 1
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "onTimer": {
-                                "name": "duration"
-                            }
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    }
-                ],
-                "hostSiteOperations": [
-                    "Poison Potion Search SOp"
-                ]
-            }
-        },
-        "Poison Potion Search Action Actor": {
-            "actionActor": {
-                "effect": "Poison Potion Search",
-                "launchModel": "Poison Potion Search Launch Model",
-                "launchModelDetached": true,
-                "impactModel": "Poison Potion Search Impact Model",
-                "impactModelDetached": true
-            }
-        },
-        "Poison Potion Search SOp": {
-            "siteOperation": {
-                "rotate": {
-                    "y": 0
-                }
-            }
-        },
-        "Poison Potion Search Impact Model": {
+        "TargetingIndicatorPotion_Valid Larger": {
             "modelActor": {
                 "resource": {
                     "type": "ParticleAnimation",
-                    "name": "vfx_tower_potiondealer_mysterypotion_impact"
+                    "name": "vfx_indicator"
                 },
                 "events": [
                     {
                         "actorTerm": {
-                            "actorCreate": {}
-                        },
-                        "actions": [
-                            {
-                                "playAnimation": {
-                                    "clipId": 0
-                                }
-                            },
-                            {
-                                "createTimer": {
-                                    "name": "duration",
-                                    "duration": 1
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "animationFinish": {}
-                        },
-                        "actions": [
-                            {
-                                "destroy": {}
-                            }
-                        ]
-                    },
-                    {
-                        "actorTerm": {
-                            "onTimer": {
-                                "name": "duration"
-                            }
+                            "actorOrphan": {}
                         },
                         "actions": [
                             {
@@ -8022,7 +8046,7 @@
                     }
                 ],
                 "hostSiteOperations": [
-                    "Poison Potion Search SOp"
+                    "SOp UpBy Dot1"
                 ],
                 "modelScale": 1.25
             }

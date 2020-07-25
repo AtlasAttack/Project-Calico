@@ -129,7 +129,7 @@ DCEI.LogMessage("Got dungeon difficulty: "..dungeonData.difficulty)
 -- VARIABLES
 local core = GameModules["Arcade/Core"]
 local settings = {
-    helpTips = false,
+    helpTips = true,
 
 }
 local testMode = false
@@ -166,7 +166,7 @@ local lastStandActive = false
 local campfireActive = false
 
 local questType = "Recruitment" -- Can be "Recruitment, Conquest, Boss, Gather, or Infinite"
-local inventory = {Item("Health Potion","",3),Item("Bomb Brew","",3,"icon_enhance_scorcher_living_bomb"),nil,nil,nil,nil,nil}
+local inventory = {Item("Health Potion","",3),Item("Bomb Brew","",3,"icon_enhance_scorcher_living_bomb"),Item("Poison Potion","",3,"icon_spell_thunder_wave"),Item("Mobility Potion","",3,"icon_enhance_frosttower_tempestaura"),nil,nil,nil}
 
 local shopItems = {
 Item("Health Potion","Restore 55 Health to a target hero. <color=yellow>Can be used before combat.",1,"icon_enhance_potiondealer_healing_potion",3),
@@ -174,8 +174,8 @@ Item("Bomb Brew","Deal 35 damage to all enemies in a target area.",1,"icon_enhan
 Item("Stun Potion","Stun all enemies in a target area for 4 seconds.",1,"icon_enhance_sunsanctum_sunlight",5),
 Item("Stealth Potion","Give a friendly hero Stealth for 5 seconds.",1,"icon_ingame_towerslot_potiondealer",3),
 Item("Refresh Potion","Give a friendly hero to instantly refresh a hero's ability.",1,"chronoPotion",3),
-Item("Poison Potion","Apply 1 stack of Poison to up to 5 enemies in a target area.",1,"chronoPotion",3),
-Item("Mobility Potion","Give a friendly hero the Mobile trait for the rest of this battle.",1,"chronoPotion",3),
+Item("Poison Potion","Apply 1 stack of Poison to up to 5 enemies in a target area.",1,"icon_spell_thunder_wave",3),
+Item("Mobility Potion","Give a friendly hero the Mobile trait for the rest of this battle.",1,"icon_enhance_frosttower_tempestaura",3),
 Item("Omnistone","Gain 2-4 free perks depending on the floor the stone is used on. Grants +30 Gold if saved until the end of the dungeon.",1,"item_omnistone",3,
     {treasureItem = true, hasTarget = false}
 ),
@@ -437,9 +437,23 @@ local gameEvents = {
         end
     ),
 
+    MapEvent("Hostile Screeching","Your party hears noises coming from not-so-distant creatures. What should you do?","Proceed as normal","[Starts a combat.]",
+        function()
+            
+            GenerateEncounter(currentDungeonLevel + 5, nil)
+            ToggleMapFrame(false)
+            CreateCombatDialog()
+            
+        end, "Cover your Tracks", "[Reduce Threat by 20%.]",
+        function()
+            DecreasePlayerThreat(20)
+            DCEI.Wait(1)
+        end
+    ),
+
 }
 
-local testEventID = 5
+local testEventID = 8
 local displayedEvents = {}
 -- TRIGGERS
 
@@ -2173,7 +2187,7 @@ function OnHeroUnitSelected(unit)
     DCEI.DeselectUnit(triggeringUnit)
     local wasHeroSelected = (DCEI.GetUnitPlayerId(triggeringUnit) == 1)
     if(battleOngoing and DCEI.GetManaValue(triggeringUnit) >= MANA_COST ) then
-        UseSignatureAbility(triggeringUnit)
+        --UseSignatureAbility(triggeringUnit)
     elseif(battleOngoing == false and (repositionModeActive == false or IsHeroUnit(triggeringUnit) == false)) then
         CreateInspectUnitDialog(triggeringUnit)
     end
@@ -2567,7 +2581,7 @@ function OnBattleFinished(win)
         willBeAmbushed = false
         if(roomsCleared == 1) then
             if(settings.helpTips == true) then
-                DCEI.ShowMessageWithButtonText("Team Experience", "Whenever a hero has their ability ready, they will periodically generate <color=purple>team experience.</color>\n\nOnce your team reaches 100% team experience, you will gain a free perk which will increase the strength of your team for the rest of the run!", "Got it!")  
+                --DCEI.ShowMessageWithButtonText("Team Experience", "Whenever a hero has their ability ready, they will periodically generate <color=purple>team experience.</color>\n\nOnce your team reaches 100% team experience, you will gain a free perk which will increase the strength of your team for the rest of the run!", "Got it!")  
             end
         end
         for partyID = 1, PARTY_SIZE do
@@ -2587,6 +2601,12 @@ function OnBattleFinished(win)
         --ShowRelevantText("<color=red>++ "..threatIncrease.."% Threat")
         
         DCEI.Wait(3)
+        if(roomsCleared == 1 and win == true) then
+            if(settings.helpTips == true) then
+                DCEI.ShowMessageWithButtonText("Threat", "As you defeat enemies, you will accumulate <color=red>Threat.</color> Once your Threat reaches 100%, you will start attracting dangerous enemies to pursue you. Defeating harder enemies generates more Threat.", "Next") 
+                DCEI.ShowMessageWithButtonText("Threat", "Your Threat is reduced when you move to a new area, and by certain events and items. Look for opportunities to reduce Threat where you can!", "Got it!")
+            end
+        end
         if(CheckVictory() == true) then
             OnObjectivesComplete()
             ClearAllUnits()
@@ -2839,7 +2859,7 @@ function HandleRepositionMode()
     if(selectedUnit ~= nil) then
         local closestSnapPoint = GetClosestHexPointToPoint(DCEI.GetMousePosition2D(),true)
         --DCEI.LogMessage("Moving a selected unit to position: "..mouseX..","..mouseY)
-        DCEI.SetUnitPosition2D(selectedUnit, closestSnapPoint.x+snapOffset.x, closestSnapPoint.y+snapOffset.y)
+        DCEI.SetUnitPosition2DWithInterpolation(selectedUnit, closestSnapPoint.x+snapOffset.x, closestSnapPoint.y+snapOffset.y)
     end
     DCEI.Wait(.001)
     if(repositionModeActive == true) then
@@ -3266,6 +3286,7 @@ function OnItemSelected(slot)
         if(itemInSlot.flags ~= nil and (itemInSlot.flags.treasureItem == true or itemInSlot.flags.hasTarget == false)) then
             HandleItemUse(itemInSlot.name)
         else
+            
             ExpectTarget(ITEM_CASTER,itemInSlot.name)
         end
         
@@ -4572,9 +4593,26 @@ function GetAffinityCount(affinity)
         end
         
     end)
-    foreach(party, function(hero)
-        if(UnitIsAlive(hero)) then
-            returnCount = returnCount + DCEI.UnitBehaviorStackCount(hero, affinity.name) 
+    --[[foreach(HERO_TYPES, function(hType)
+        local countOfType = GetHeroTypeCount(hType)
+        DCEI.LogMessage("Got "..countOfType.." count of hero type: "..hType.name)
+        foreach(hType.affinities, function(affin)
+            if(affin.name == affinity.name) then
+                returnCount = returnCount + countOfType
+            end
+            
+        end)
+    
+    end)]]
+    foreach(partyUnits, function(heroType)
+        if(heroType ~= nil and heroType ~= "") then
+            local hType = GetHeroTypeFromUnitName(heroType)
+            foreach(hType.affinities, function(affin)
+                if(affin.name == affinity.name) then
+                    returnCount = returnCount + 1
+                end
+                
+            end)
         end
     end)
     return returnCount
@@ -4589,6 +4627,28 @@ function GetAffinityTokenCount(affinityName)
         end
         
     end)
+    return returnCount
+end
+
+function GetHeroTypeFromUnitName(unitName)
+    local returnHType = nil
+    foreach(HERO_TYPES, function(hType)
+        if(hType.name == unitName) then
+            returnHType = hType
+        end
+    
+    end)
+    return returnHType
+end
+
+function GetHeroTypeCount(heroType)
+    local returnCount = 0
+    for index=1,PARTY_SIZE do
+        if(partyUnits[index] == heroType.name and UnitIsAlive(party[index])) then
+            returnCount = returnCount + 1
+        end
+        
+    end
     return returnCount
 end
 
@@ -4672,6 +4732,7 @@ function CreateShopDialog(callback)
             DCEI.SetVerticalOffsetInParent(button, -1*yPos)
             DCEI.SetMinSize(button, SHOP_X, SHOP_Y)
             DCEI.SetMaxSize(button, SHOP_X, SHOP_Y)
+            DCEI.SetTooltipText(button, shopItem.tooltip)
             
             --[[local icon = DCEI.NewButton(container)
             DCEI.SetBackgroundImage(button, imagePath)
@@ -5117,6 +5178,22 @@ function CreateUnitBar(targetUnit, isEnemy)
     if(isEnemy) then
         attachOptions.offset.up = 0.20
     end
+
+    if(isEnemy == false) then
+        local energyFillBar = DCEI.NewFrame(healthFillBar)
+        DCEI.SetBackgroundImage(energyFillBar, image.shield)
+        DCEI.SetSize(energyFillBar, dialogX-0, dialogY-4)
+        DCEI.SetBackgroundImageColor(energyFillBar, 51/255, 204/255, 255/255, dialogOpacity)
+        DCEI.SetBackgroundImageFillHorizontal(energyFillBar)
+        DCEI.SetVerticalOffsetInParent(energyFillBar,-6)
+        local e_identifier = DCEI.UnitName(targetUnit).."_"..(castBarID)
+        DCEI.SetBackgroundImageFillAmountExpression(energyFillBar,e_identifier .. ".Mana.Fraction")
+    end
+    
+
+    local identifier = DCEI.UnitName(targetUnit).."_"..(castBarID)
+    DCEI.SetBackgroundImageFillAmountExpression(healthFillBar,identifier .. ".Health.Fraction")
+
     DCEI.AttachToUnit(container,targetUnit,attachOptions)
     DCEI.BindUnit(identifier,targetUnit)
     castBars[unitID] = container
@@ -5129,7 +5206,7 @@ function CreateUnitBar(targetUnit, isEnemy)
         DCEI.SetSize(stack, dialogX, dialogY*2)
         --DCEI.SetMaxSize(stack, dialogX, dialogY)
         DCEI.SetBottomAlignmentInParent(stack)
-        DCEI.SetVerticalOffsetInParent(stack,19)
+        DCEI.SetVerticalOffsetInParent(stack,15)
         DCEI.SetSpacing(stack,0)
         DCEI.SetPadding(stack, 0)
         --DCEI.SetVerticalOffsetInParent(stack,)
@@ -6123,6 +6200,12 @@ function IncreasePlayerThreat(modifyValue)
     UpdateMapPanel()
 end
 
+function DecreasePlayerThreat(modifyValue)
+    threatLevel = threatLevel - modifyValue
+    ShowRelevantText("<color=green>- "..modifyValue.."% Threat!")
+    UpdateMapPanel()
+end
+
 function OnRoomEnter(value)
     local roomType = GetRoomType(value)
     finished = false
@@ -6503,6 +6586,8 @@ function OnMapStart()
     local emptyPoint = DCEI.GetUnitPosition2D(ITEM_CASTER)
     foreach(HERO_TYPES, function(heroObject)
         local createdUnit = DCEI.CreateUnitWithFacing(1, 1, heroObject.name, emptyPoint.x, emptyPoint.y, 0, 0)
+        DCEI.Wait(0)
+        --DCEI.ApplyBehavior("Paused",createdUnit)
         ExecuteAfter(function()
             foreach(AFFINITIES, function(affinity)
                 if(affinity.name ~= "Bonus" and affinity.name ~= "Nightmare" and DCEI.UnitBehaviorStackCount(createdUnit, affinity.name) >= 1) then

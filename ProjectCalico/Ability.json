@@ -2,8 +2,8 @@
     "abilities": {
         "Bless": {
             "abilityType": 1,
-            "castType": 1,
-            "effect": "Bless Set",
+            "castType": 2,
+            "effect": "Autocast_Heal",
             "stats": {
                 "range": 12
             },
@@ -39,7 +39,7 @@
         },
         "Brew Potion": {
             "abilityType": 2,
-            "castType": 1,
+            "castType": 2,
             "effect": "Brew Potion",
             "cost": {
                 "mana": 10
@@ -61,7 +61,7 @@
         },
         "Enrage": {
             "abilityType": 2,
-            "castType": 1,
+            "castType": 2,
             "effect": "Enrage Set",
             "stats": {
                 "finishTime": 0
@@ -86,33 +86,57 @@
         },
         "Heavy Arrow": {
             "abilityType": 1,
-            "castType": 1,
-            "targetRangeMode": 2,
-            "effect": "Heavy Arrow Launch Missile",
+            "castType": 2,
+            "targetRangeMode": 0,
+            "effect": "Autocast_HeavyArrow",
             "stats": {
                 "range": 10
             },
             "cost": {
                 "mana": 10
             },
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 2,
+                    "order": 1
+                },
+                "secondarySortKeys": {
+                    "key": 5
+                },
+                "enemy": 1,
+                "missile": 2,
+                "air": 2,
+                "invulerable": 2,
+                "alive": 1
+            },
             "description": "Heavy Arrow Target ~~"
         },
         "Ignite": {
             "abilityType": 1,
-            "castType": 1,
-            "effect": "Ignite Spawn Unit",
+            "castType": 2,
+            "effect": "Autocast_Ignite",
             "stats": {
                 "range": 8
             },
             "cost": {
                 "mana": 10
             },
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 8,
+                    "order": 1
+                },
+                "secondarySortKeys": {
+                    "key": 1,
+                    "order": 1
+                }
+            },
             "targetingValidCursorActor": "_FX CursorTarget",
             "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
         },
         "Inspire": {
             "abilityType": 2,
-            "castType": 1,
+            "castType": 2,
             "effect": "Inspire Search Area",
             "stats": {
                 "finishTime": 0
@@ -125,7 +149,7 @@
         },
         "Legion's Call": {
             "abilityType": 2,
-            "castType": 1,
+            "castType": 2,
             "effect": "Legion's Call",
             "stats": {
                 "finishTime": 0
@@ -140,10 +164,39 @@
             "commandCardIcon": "icon_enhance_lighthouse_guardian",
             "commandCardConfirmIcon": "icon_enhance_lighthouse_guardian"
         },
-        "Protect": {
+        "Mobility Potion": {
             "abilityType": 1,
             "castType": 1,
-            "effect": "Protect Leap to Point",
+            "effect": "Mobility Potion",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 5
+                }
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Poison Potion": {
+            "abilityType": 1,
+            "castType": 1,
+            "effect": "Poison Potion Search",
+            "stats": {
+                "finishTime": 0,
+                "range": 900
+            },
+            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
+            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid Larger",
+            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
+        },
+        "Protect": {
+            "abilityType": 1,
+            "castType": 2,
+            "effect": "Autocast_Protect",
             "stats": {
                 "range": 8
             },
@@ -151,6 +204,13 @@
                 "mana": 10
             },
             "targetFilter": {
+                "primarySortKeys": {
+                    "key": 5
+                },
+                "secondarySortKeys": {
+                    "key": 2,
+                    "order": 1
+                },
                 "enemy": 2,
                 "missile": 2,
                 "structure": 2,
@@ -174,8 +234,8 @@
         },
         "Regrowth": {
             "abilityType": 1,
-            "castType": 1,
-            "effect": "Regrowth Apply Behavior",
+            "castType": 2,
+            "effect": "Autocast_Regrowth",
             "stats": {
                 "range": 12
             },
@@ -185,6 +245,10 @@
             "targetFilter": {
                 "primarySortKeys": {
                     "key": 5
+                },
+                "secondarySortKeys": {
+                    "key": 3,
+                    "order": 1
                 },
                 "player": 0,
                 "ally": 0,
@@ -199,9 +263,9 @@
         },
         "Scattershot": {
             "abilityType": 1,
-            "castType": 1,
+            "castType": 2,
             "targetRangeMode": 0,
-            "effect": "Scattershot Search",
+            "effect": "Autocast_Scattershot",
             "stats": {
                 "period": 0.5,
                 "range": 4,
@@ -210,7 +274,18 @@
             "cost": {
                 "mana": 10
             },
-            "canCastWhileMoving": false
+            "canCastWhileMoving": false,
+            "targetFilter": {
+                "primarySortKeys": {
+                    "key": 2,
+                    "order": 0
+                },
+                "secondarySortKeys": {
+                    "key": 5,
+                    "order": 1
+                },
+                "enemy": 1
+            }
         },
         "Stealth Potion": {
             "abilityType": 1,
@@ -238,7 +313,7 @@
         },
         "Sublety": {
             "abilityType": 2,
-            "castType": 1,
+            "castType": 2,
             "effect": "Assassin Sublety Apply Behavior",
             "cost": {
                 "mana": 10
@@ -272,35 +347,6 @@
                 "invulerable": 2
             },
             "chargeIgnoreCooldown": true
-        },
-        "Poison Potion": {
-            "abilityType": 1,
-            "castType": 1,
-            "effect": "Poison Potion Search",
-            "stats": {
-                "finishTime": 0,
-                "range": 900
-            },
-            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
-            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
-            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
-        },
-        "Mobility Potion": {
-            "abilityType": 1,
-            "castType": 1,
-            "effect": "Mobility Potion",
-            "stats": {
-                "finishTime": 0,
-                "range": 900
-            },
-            "targetFilter": {
-                "primarySortKeys": {
-                    "key": 5
-                }
-            },
-            "commandCardConfirmIcon": "icon_enhance_potiondealer_healing_potion",
-            "targetingValidCursorActor": "TargetingIndicatorPotion_Valid",
-            "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
         }
     }
 }

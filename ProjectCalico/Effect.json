@@ -966,6 +966,13 @@
                 "effect": "Timed Life Apply Behavior"
             }
         },
+        "Mobility Potion": {
+            "applyBehavior": {
+                "behavior": "Mobile",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
         "Move": {
             "teleportAlongWaypoint": {}
         },
@@ -991,6 +998,30 @@
                         }
                     }
                 ]
+            }
+        },
+        "Poison Potion Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.15
+                    }
+                },
+                "maxUnitCount": 5,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Apply Poison"
             }
         },
         "Polymorph": {
@@ -1565,35 +1596,176 @@
                 "terminateOnPeriodicEffectSuccess": true
             }
         },
-        "Mobility Potion": {
-            "applyBehavior": {
-                "behavior": "Mobile",
-                "target": 1,
-                "stackCount": 1
-            }
-        },
-        "Poison Potion Search": {
+        "Autocast_Ignite": {
             "areaSearch": {
-                "debugDraw": false,
                 "areaSearchType": {
                     "circle": {
-                        "radius": 1.15
+                        "radius": 6
                     }
                 },
-                "maxUnitCount": 5,
+                "maxUnitCount": 1,
                 "filter": {
                     "primarySortKeys": {
-                        "key": 5,
+                        "key": 8,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
                         "order": 1
                     },
                     "enemy": 1,
                     "missile": 2,
-                    "structure": 2,
-                    "air": 2,
+                    "ground": 1,
                     "invulerable": 2,
                     "alive": 1
                 },
-                "effect": "Apply Poison"
+                "effect": "Ignite Spawn Unit",
+                "location": 1
+            }
+        },
+        "Autocast_Heal": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Bless Heal",
+                "location": 1
+            }
+        },
+        "Autocast_Regrowth": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "unit": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Regrowth Apply Behavior",
+                "location": 1
+            }
+        },
+        "Autocast_HeavyArrow": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 9
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 1,
+                    "neutral": 2,
+                    "missile": 2,
+                    "air": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Heavy Arrow Launch Missile",
+                "location": 3,
+                "useSourceFacing": true
+            }
+        },
+        "Autocast_Protect": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Protect Leap to Point",
+                "location": 3
+            }
+        },
+        "Autocast_Scattershot": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 2.3
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Scattershot Search",
+                "location": 3
             }
         }
     }
