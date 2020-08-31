@@ -5,9 +5,22 @@
                 "whichUnit": 2
             }
         },
+        "AI_OozeSplit": {
+            "damage": {}
+        },
+        "AI_WitchHex": {
+            "damage": {}
+        },
         "Ablaze Combust Damage": {
             "damage": {
-                "damageAmount": 20
+                "damageAmount": 20,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "Fire Damage"
+                        }
+                    }
+                ]
             }
         },
         "Ablaze Combust Search": {
@@ -31,7 +44,108 @@
         },
         "Ablaze DoT": {
             "damage": {
-                "damageAmount": 2
+                "damageAmount": 2,
+                "expressions": [
+                    {
+                        "namedExpression": {}
+                    }
+                ]
+            }
+        },
+        "Abomination Claw Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 12,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "2X Damage to Unarmored"
+                        }
+                    }
+                ]
+            }
+        },
+        "Alchemist Launch Missile": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileUnit": "Potion Missile",
+                "effect": "Alchemist Potion Damage",
+                "mover": "Slower Missile Mover"
+            }
+        },
+        "Alchemist Potion Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 4
+            }
+        },
+        "Apply 1 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Apply 3 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 3
+            }
+        },
+        "Apply 5 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 5
+            }
+        },
+        "Apply 7 Block": {
+            "applyBehavior": {
+                "behavior": "Block",
+                "target": 1,
+                "stackCount": 7
+            }
+        },
+        "Apply Bleed Immunity": {
+            "applyBehavior": {
+                "behavior": "Bleed Immunity",
+                "target": 1
+            }
+        },
+        "Apply Mobile": {
+            "applyBehavior": {
+                "behavior": "Mobile",
+                "target": 1
+            }
+        },
+        "Apply Permanent Spellshield": {
+            "applyBehavior": {
+                "behavior": "Spellshield",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Apply Poison": {
+            "applyBehavior": {
+                "behavior": "Poison",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
+        "Apply Poison Immunity": {
+            "applyBehavior": {
+                "behavior": "Poison Immunity",
+                "target": 1
+            }
+        },
+        "Apply Poison and Bleed Immunity": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Apply Bleed Immunity",
+                    "Apply Poison Immunity"
+                ]
             }
         },
         "Apply Stun": {
@@ -40,6 +154,34 @@
                 "target": 1,
                 "stackCount": 1,
                 "duration": 4
+            }
+        },
+        "Apply Trickster AB Stealth": {
+            "applyBehavior": {
+                "behavior": "Stealth",
+                "target": 2,
+                "duration": 2
+            }
+        },
+        "Apply Trickster Bonus Damage": {
+            "applyBehavior": {
+                "behavior": "Trickster Bonus Damage",
+                "target": 2
+            }
+        },
+        "Archer Bow Apply Poison": {
+            "persistent": {
+                "periodicCount": 1,
+                "location": 1,
+                "periodicDurations": [
+                    0.01
+                ],
+                "periodicEffects": [
+                    "Apply Poison"
+                ],
+                "periodicValidators": [
+                    "SourceUnit Has RangerAffinityBonus"
+                ]
             }
         },
         "Archer Bow Apply Vulnerable": {
@@ -59,7 +201,8 @@
                 "targetType": 1,
                 "effectList": [
                     "Archer Bow Damage",
-                    "Archer Bow Apply Vulnerable"
+                    "Archer Bow Apply Vulnerable",
+                    "Archer Bow Apply Poison"
                 ]
             }
         },
@@ -67,8 +210,302 @@
             "launchMissile": {
                 "targetType": 1,
                 "missileUnit": "Arrow Missile",
-                "effect": "Archer Bow Damage",
+                "effect": "Archer Bow Impact Set",
                 "mover": "Archer Missile Mover"
+            }
+        },
+        "Armored Affinity Apply Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Apply Permanent Spellshield"
+                ]
+            }
+        },
+        "Assassin 2nd Blink Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 13
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Assassin Blink 2nd Set",
+                "location": 4
+            }
+        },
+        "Assassin Blink 2nd Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Assassin Blink Damage",
+                    "Assassin Blink Teleport",
+                    "Stop Movement (Source Unit)"
+                ]
+            }
+        },
+        "Assassin Blink Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 35
+            }
+        },
+        "Assassin Blink Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 13
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Assassin Blink Set",
+                "location": 4
+            }
+        },
+        "Assassin Blink Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Assassin Blink Damage",
+                    "Assassin Blink Teleport",
+                    "Stop Movement (Source Unit)",
+                    "Assassin Do Second Blink"
+                ]
+            }
+        },
+        "Assassin Blink Teleport": {
+            "teleport": {
+                "whichUnit": 2,
+                "to": 1,
+                "offsetStart": 1,
+                "offsetEnd": 1,
+                "offset": {
+                    "forward": -0.6
+                }
+            }
+        },
+        "Assassin Dagger": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 9
+            }
+        },
+        "Assassin Do Second Blink": {
+            "applyBehavior": {
+                "behavior": "Assassin Second Blink",
+                "target": 2
+            }
+        },
+        "Assassin Sublety Apply Behavior": {
+            "applyBehavior": {
+                "behavior": "Assassin Sublety",
+                "target": 2
+            }
+        },
+        "Autocast_Heal": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Bless Heal",
+                "location": 1
+            }
+        },
+        "Autocast_HeavyArrow": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 9
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 1,
+                    "neutral": 2,
+                    "missile": 2,
+                    "air": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Heavy Arrow Launch Missile",
+                "location": 1,
+                "useSourceFacing": true
+            }
+        },
+        "Autocast_Ignite": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 8,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Ignite Spawn Unit",
+                "location": 1
+            }
+        },
+        "Autocast_Protect": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Protect Leap to Point",
+                "location": 3
+            }
+        },
+        "Autocast_Regrowth": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "unit": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Regrowth Apply Behavior",
+                "location": 1
+            }
+        },
+        "Autocast_Scattershot": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 2.3
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Scattershot Search",
+                "location": 3
             }
         },
         "Berserker Mace Damage": {
@@ -76,11 +513,27 @@
                 "damageAmount": 6
             }
         },
+        "Bleed Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 0,
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Bleed"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
         "Bless Heal": {
             "heal": {
                 "whichUnit": 1,
                 "valueType": 1,
-                "healAmount": 35
+                "healAmount": 40
             }
         },
         "Bless Set": {
@@ -96,7 +549,7 @@
                 "debugDraw": false,
                 "areaSearchType": {
                     "circle": {
-                        "radius": 0.85
+                        "radius": 0.95
                     }
                 },
                 "maxUnitCount": 4,
@@ -112,22 +565,44 @@
                     "invulerable": 2,
                     "alive": 1
                 },
-                "effect": "Blighted Ogre Cloud Damage"
+                "effect": "Apply Poison"
             }
         },
         "Blight Ogre Smash Damage": {
             "damage": {
-                "damageAmount": 1
+                "damageAmount": 3
             }
         },
         "Blighted Ogre Cloud Damage": {
             "damage": {
-                "damageAmount": 2
+                "damageAmount": 2,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "AoE Damage"
+                        }
+                    }
+                ]
+            }
+        },
+        "Block Expire Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Remove 1 Block"
+                ]
             }
         },
         "Bomber's Brew Damage": {
             "damage": {
-                "damageAmount": 25
+                "damageAmount": 35,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "Fire Damage"
+                        }
+                    }
+                ]
             }
         },
         "Bomber's Brew Search": {
@@ -191,10 +666,13 @@
                 "damageAmount": 2
             }
         },
+        "Brew Potion": {
+            "damage": {}
+        },
         "Deathbolt Damage": {
             "damage": {
                 "whichUnit": 1,
-                "damageAmount": 15
+                "damageAmount": 10
             }
         },
         "Deathbolt Launch Missile": {
@@ -268,6 +746,56 @@
                 ]
             }
         },
+        "Decay Damage": {
+            "damage": {
+                "damageAmount": 4,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "AoE Damage"
+                        }
+                    }
+                ]
+            }
+        },
+        "Decay Search Area": {
+            "parent": "_StandardAreaSearch",
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 0.65
+                    }
+                },
+                "effect": "Decay Damage"
+            }
+        },
+        "Deranged Warthog Bite Damage": {
+            "damage": {
+                "damageAmount": 10
+            }
+        },
+        "Druid Naturebolt Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 4,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "Nature Damage"
+                        }
+                    }
+                ]
+            }
+        },
+        "Druid Naturebolt Launch Missile": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileUnit": "Druid Naturebolt Missile",
+                "effect": "Druid Naturebolt Damage",
+                "mover": "Slower Missile Mover"
+            }
+        },
         "Enrage Apply Behavior": {
             "applyBehavior": {
                 "behavior": "Enrage Buff",
@@ -301,7 +829,7 @@
             "heal": {
                 "whichUnit": 1,
                 "valueType": 1,
-                "healAmount": 50
+                "healAmount": 55
             }
         },
         "Health Potion Search": {
@@ -418,7 +946,8 @@
                         "key": 4,
                         "order": 1
                     },
-                    "enemy": 1
+                    "enemy": 1,
+                    "invulerable": 2
                 },
                 "validators": [
                     "Not Hit By Heavy Arrow"
@@ -426,9 +955,60 @@
                 "effect": "Heavy Arrow Impact Set"
             }
         },
+        "Herald Bolt Launch Missile": {
+            "parent": "Bone Archer Bow Launch Missile",
+            "launchMissile": {
+                "missileUnit": "Deathbolt Missile",
+                "effect": "Herald Deathbolt Damage",
+                "mover": "Slower Missile Mover"
+            }
+        },
+        "Herald Deathbolt Damage": {
+            "damage": {
+                "damageAmount": 1
+            }
+        },
+        "Herald Enrage Apply Behavior": {
+            "applyBehavior": {
+                "behavior": "Herald Enrage",
+                "target": 1
+            }
+        },
+        "Herald Enrage Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 25
+                    }
+                },
+                "filter": {
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "alive": 1
+                },
+                "effect": "Herald Enrage Apply Behavior"
+            }
+        },
         "Ignite DOT Damage": {
             "damage": {
-                "damageAmount": 2.5
+                "damageAmount": 2.5,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "Fire Damage"
+                        }
+                    },
+                    {
+                        "namedExpression": {
+                            "name": "AoE Damage"
+                        }
+                    }
+                ]
             }
         },
         "Ignite Search Area": {
@@ -457,6 +1037,15 @@
                 "target": 1
             }
         },
+        "Inspire Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Apply 3 Block",
+                    "Inspire"
+                ]
+            }
+        },
         "Inspire Search Area": {
             "areaSearch": {
                 "debugDraw": false,
@@ -479,8 +1068,55 @@
                 "validators": [
                     "Is A Hero"
                 ],
-                "effect": "Inspire",
+                "effect": "Inspire Impact Set",
                 "location": 6
+            }
+        },
+        "Knight Apply Stun": {
+            "applyBehavior": {
+                "behavior": "Knight Stun",
+                "target": 1
+            }
+        },
+        "Knight Cleave Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Knight Damage",
+                    "Knight Apply Stun"
+                ]
+            }
+        },
+        "Knight Cleave Search": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.1
+                    }
+                },
+                "maxUnitCount": 3,
+                "target": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Knight Cleave Impact Set",
+                "location": 1,
+                "offset": {
+                    "forward": 0
+                }
+            }
+        },
+        "Knight Damage": {
+            "damage": {
+                "damageAmount": 2
             }
         },
         "Legion Sword Damage": {
@@ -491,7 +1127,7 @@
         "Legion's Call": {
             "spawn": {
                 "unit": "Footman",
-                "count": 1,
+                "count": 2,
                 "owner": 2,
                 "location": 4,
                 "offsetStart": 4,
@@ -502,11 +1138,66 @@
                 "effect": "Timed Life Apply Behavior"
             }
         },
+        "Mobility Potion": {
+            "applyBehavior": {
+                "behavior": "Mobile",
+                "target": 1,
+                "stackCount": 1
+            }
+        },
         "Move": {
             "teleportAlongWaypoint": {}
         },
         "OnEliteDeath": {
             "damage": {}
+        },
+        "Ooze Damage": {
+            "damage": {
+                "damageAmount": 4
+            }
+        },
+        "Poison Damage": {
+            "damage": {
+                "whichUnit": 1,
+                "damageAmount": 0,
+                "expressions": [
+                    {
+                        "value": {
+                            "behaviorStackCount": {
+                                "unit": 2,
+                                "behavior": "Poison"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "Poison Potion Search": {
+            "areaSearch": {
+                "debugDraw": false,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.15
+                    }
+                },
+                "maxUnitCount": 5,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Apply Poison"
+            }
+        },
+        "Polymorph": {
+            "modifyUnit": {}
         },
         "Priest Condemn Damage": {
             "damage": {
@@ -520,6 +1211,67 @@
                 "mover": "Heavy Arrow Mover"
             }
         },
+        "Protect Apply Immune": {
+            "applyBehavior": {
+                "behavior": "Immune",
+                "target": 1,
+                "duration": 2
+            }
+        },
+        "Protect Apply Selfshield": {
+            "applyBehavior": {
+                "behavior": "Protector Shield",
+                "target": 3
+            }
+        },
+        "Protect Impact Set": {
+            "set": {
+                "targetType": 1,
+                "effectList": [
+                    "Protect Search Area",
+                    "Protect Apply Selfshield"
+                ]
+            }
+        },
+        "Protect Leap to Point": {
+            "launchMissile": {
+                "targetType": 1,
+                "missileDeathType": 1,
+                "effect": "Protect Impact Set",
+                "launchLocation": 7,
+                "impactLocation": 2,
+                "mover": "Slower Missile Mover"
+            }
+        },
+        "Protect Search Area": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.5
+                    }
+                },
+                "maxUnitCount": 2,
+                "caster": 2,
+                "source": 2,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "validators": [
+                    "Is A Hero"
+                ],
+                "effect": "Protect Apply Immune",
+                "location": 6
+            }
+        },
         "Pyromancer Apply Ablaze": {
             "applyBehavior": {
                 "behavior": "Ablaze",
@@ -529,7 +1281,15 @@
         },
         "Pyromancer Fireball Damage": {
             "damage": {
-                "damageAmount": 4
+                "whichUnit": 1,
+                "damageAmount": 4,
+                "expressions": [
+                    {
+                        "namedExpression": {
+                            "name": "Fire Damage"
+                        }
+                    }
+                ]
             }
         },
         "Pyromancer Fireball Impact Set": {
@@ -583,6 +1343,26 @@
                 ],
                 "effect": "Restore Energy",
                 "location": 2
+            }
+        },
+        "Regrowth Apply Behavior": {
+            "applyBehavior": {
+                "behavior": "Regrowth Healing",
+                "target": 1
+            }
+        },
+        "Regrowth Heal (HoT)": {
+            "heal": {
+                "whichUnit": 1,
+                "valueType": 1,
+                "healAmount": 6
+            }
+        },
+        "Remove 1 Block": {
+            "removeBehavior": {
+                "behavior": "Block",
+                "target": 3,
+                "stackCount": 1
             }
         },
         "Remove Unit": {
@@ -687,6 +1467,18 @@
                 "spawnCount": 1
             }
         },
+        "Spawn Greater Ooze": {
+            "spawnTroop": {
+                "unit": "Greater Malevolent Ooze",
+                "spawnCount": 1
+            }
+        },
+        "Spawn Ooze": {
+            "spawnTroop": {
+                "unit": "Malevolent Ooze",
+                "spawnCount": 1
+            }
+        },
         "Spawn Warthog": {
             "spawnTroop": {
                 "unit": "Warthog",
@@ -697,7 +1489,7 @@
             "applyBehavior": {
                 "behavior": "Stealth",
                 "stackCount": 1,
-                "duration": 3
+                "duration": 5
             }
         },
         "Stealth Potion Search": {
@@ -730,6 +1522,11 @@
                 "location": 1
             }
         },
+        "Stop Movement (Source Unit)": {
+            "stop": {
+                "whichUnit": 2
+            }
+        },
         "Stun Potion Search": {
             "areaSearch": {
                 "debugDraw": true,
@@ -751,8 +1548,64 @@
                 "location": 2
             }
         },
+        "TESt": {
+            "enumerateUnitList": {}
+        },
+        "Taunt Effect - Attack Caster": {
+            "issueCommand": {
+                "type": 3,
+                "whichUnit": 1,
+                "targetUnit": 3
+            }
+        },
+        "Taunt Search": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.25
+                    }
+                },
+                "maxUnitCount": 5,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 1,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "air": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Taunt Effect - Attack Caster"
+            }
+        },
         "TestMoverUnit": {
             "launchMissile": {}
+        },
+        "TestPaintUnitRed": {
+            "applyBehavior": {
+                "behavior": "TestPaintUnitRed",
+                "target": 1,
+                "duration": 1
+            }
+        },
+        "TestSearchArea": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 1.5
+                    }
+                },
+                "effect": "TestPaintUnitRed",
+                "location": 1,
+                "offset": {
+                    "up": 0.35
+                }
+            }
         },
         "Timed Life Apply Behavior": {
             "applyBehavior": {
@@ -778,6 +1631,11 @@
                     "Spawn Warthog",
                     "Spawn Bone Archer",
                     "Spawn Bone Warrior",
+                    "Spawn Bone Warrior",
+                    "Spawn Ooze",
+                    "Spawn Greater Ooze",
+                    "Spawn Blight Ogre",
+                    "Spawn Bone Archer",
                     "Spawn Bone Warrior"
                 ],
                 "periodicOffsetSelectMode": 1
@@ -797,6 +1655,9 @@
                 "effect": "Warthog Charge Impact (Dummy)",
                 "launchLocation": 7,
                 "impactLocation": 1,
+                "impactOffset": {
+                    "forward": -0.5
+                },
                 "mover": "Heavy Arrow Mover"
             }
         },

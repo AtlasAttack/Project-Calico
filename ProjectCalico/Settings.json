@@ -1,6 +1,6 @@
 {
     "settings": {
-        "version": "0.0.12",
+        "version": "0.0.14",
         "dependencies": [
             "Arcade/Core"
         ],
@@ -54,7 +54,8 @@
             "[Sound] Battle Start",
             "[Sound] Perk Earned",
             "[Sound] Run Succeeded",
-            "AI_Cast_Deathcall"
+            "AI_Cast_Deathcall",
+            "Brew Potion"
         ],
         "usedBehaviors": [
             "Paused",
@@ -107,7 +108,8 @@
             "AffinityBonusDamage",
             "Nightmare",
             "AffinityBonus_Aqua",
-            "AffinityBonus_Pyro"
+            "AffinityBonus_Pyro",
+            "Brutal Combat"
         ],
         "usedSoundAssets": [
             "desecrate_impact",
@@ -162,6 +164,7 @@
             "item_tome2",
             "item_tome3",
             "icon_ingame_blackpotion",
+            "scoutingParty",
             ""
         ],
         "usedSpriteAssets": [

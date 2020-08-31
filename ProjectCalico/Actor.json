@@ -6941,6 +6941,30 @@
                 "modelScale": 0.5
             }
         },
+        "TargetingIndicatorPotion_Valid Larger": {
+            "modelActor": {
+                "resource": {
+                    "type": "ParticleAnimation",
+                    "name": "vfx_indicator"
+                },
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorOrphan": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "SOp UpBy Dot1"
+                ],
+                "modelScale": 1.25
+            }
+        },
         "TargetingIndicatorSTUNPotion_Valid": {
             "modelActor": {
                 "resource": {
@@ -8027,16 +8051,46 @@
                 }
             }
         },
-        "TargetingIndicatorPotion_Valid Larger": {
+        "Flurry Impact Dummy Launch Model": {
             "modelActor": {
                 "resource": {
                     "type": "ParticleAnimation",
-                    "name": "vfx_indicator"
+                    "name": "vfx_tower_lighthouse_heal_launch"
                 },
                 "events": [
                     {
                         "actorTerm": {
-                            "actorOrphan": {}
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
                         },
                         "actions": [
                             {
@@ -8046,9 +8100,74 @@
                     }
                 ],
                 "hostSiteOperations": [
-                    "SOp UpBy Dot1"
+                    "Flurry Impact Dummy SOp"
                 ],
-                "modelScale": 1.25
+                "modelScale": 1
+            }
+        },
+        "Flurry Impact Dummy Action Actor": {
+            "actionActor": {
+                "effect": "Flurry Impact Dummy",
+                "launchModel": "Flurry Impact Dummy Launch Model",
+                "launchModelDetached": true,
+                "impactModel": "Flurry Impact Dummy Impact Model",
+                "impactModelDetached": true
+            }
+        },
+        "Flurry Impact Dummy SOp": {
+            "siteOperation": {
+                "rotate": {
+                    "y": 0
+                }
+            }
+        },
+        "Flurry Impact Dummy Impact Model": {
+            "modelActor": {
+                "events": [
+                    {
+                        "actorTerm": {
+                            "actorCreate": {}
+                        },
+                        "actions": [
+                            {
+                                "playAnimation": {
+                                    "clipId": 0
+                                }
+                            },
+                            {
+                                "createTimer": {
+                                    "name": "duration",
+                                    "duration": 1
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "animationFinish": {}
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    },
+                    {
+                        "actorTerm": {
+                            "onTimer": {
+                                "name": "duration"
+                            }
+                        },
+                        "actions": [
+                            {
+                                "destroy": {}
+                            }
+                        ]
+                    }
+                ],
+                "hostSiteOperations": [
+                    "Flurry Impact Dummy SOp"
+                ]
             }
         }
     },

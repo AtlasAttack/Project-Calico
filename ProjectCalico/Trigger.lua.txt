@@ -57,7 +57,7 @@ function Room(roomID, roomType, wasExplored, roomConnections)
     return {type = roomType, explored = wasExplored, connections = roomConnections, id = roomID}
 end
 
-function GamePerk(perkName, perkDesc, perkImage, applyBehavior, canStack  ,requiredDungeonLevel)
+function GamePerk(perkName, perkDesc, perkImage, applyBehavior, canStack  ,requiredDungeonLevel, specialReq)
     if(requiredDungeonLevel == nil) then
         requiredDungeonLevel = 0
     end
@@ -67,7 +67,10 @@ function GamePerk(perkName, perkDesc, perkImage, applyBehavior, canStack  ,requi
     if(applyBehavior == nil) then
         applyBehavior = false
     end
-    return {name = perkName, description = perkDesc, image = perkImage, stackable = canStack, levelNeeded = requiredDungeonLevel, isBehavior = applyBehavior}
+    if(specialReq == nil) then
+        specialReq = false
+    end
+    return {name = perkName, description = perkDesc, image = perkImage, stackable = canStack, levelNeeded = requiredDungeonLevel, isBehavior = applyBehavior, specialRequirement = specialReq}
 end
 
 
@@ -133,7 +136,7 @@ local settings = {
 
 }
 local testMode = false
-local demonstrationMode = true
+local demonstrationMode = false
 local targetingModeActive = false
 local party = {} -- List of heroes the player controls.
 local partyUnits = {}
@@ -166,15 +169,15 @@ local lastStandActive = false
 local campfireActive = false
 
 local questType = "Recruitment" -- Can be "Recruitment, Conquest, Boss, Gather, or Infinite"
-local inventory = {Item("Health Potion","",3),Item("Bomb Brew","",3,"icon_enhance_scorcher_living_bomb"),Item("Poison Potion","",3,"icon_spell_thunder_wave"),Item("Mobility Potion","",3,"icon_enhance_frosttower_tempestaura"),nil,nil,nil}
+local inventory = {Item("Health Potion","",3),Item("Bomb Brew","",3,"icon_enhance_scorcher_living_bomb"),nil,nil,nil,nil,nil}
 
 local shopItems = {
-Item("Health Potion","Restore 55 Health to a target hero. <color=yellow>Can be used before combat.",1,"icon_enhance_potiondealer_healing_potion",3),
+Item("Health Potion","Restore 55 Health to all heroes in a target area. <color=yellow>Can be used before combat.",1,"icon_enhance_potiondealer_healing_potion",3),
 Item("Bomb Brew","Deal 35 damage to all enemies in a target area.",1,"icon_enhance_scorcher_living_bomb",5),
 Item("Stun Potion","Stun all enemies in a target area for 4 seconds.",1,"icon_enhance_sunsanctum_sunlight",5),
 Item("Stealth Potion","Give a friendly hero Stealth for 5 seconds.",1,"icon_ingame_towerslot_potiondealer",3),
 Item("Refresh Potion","Give a friendly hero to instantly refresh a hero's ability.",1,"chronoPotion",3),
-Item("Poison Potion","Apply 1 stack of Poison to up to 5 enemies in a target area.",1,"icon_spell_thunder_wave",3),
+Item("Poison Potion","Apply 2 stacks of Poison to up to all enemies in a target area.",1,"icon_spell_thunder_wave",3),
 Item("Mobility Potion","Give a friendly hero the Mobile trait for the rest of this battle.",1,"icon_enhance_frosttower_tempestaura",3),
 Item("Omnistone","Gain 2-4 free perks depending on the floor the stone is used on. Grants +30 Gold if saved until the end of the dungeon.",1,"item_omnistone",3,
     {treasureItem = true, hasTarget = false}
@@ -183,10 +186,21 @@ Item("Omnistone","Gain 2-4 free perks depending on the floor the stone is used o
 Item("Seer's Eye","Reveal all hidden rooms in your current area.",1,"item_seerseye",3,{treasureItem = true, hasTarget = false}),
 
 }
+
+
+local treasureItems = {--A list of items (from the shopitems list) that are more rare.
+    Item("Omnistone","Gain 2-4 free perks depending on the floor the stone is used on. Grants +30 Gold if saved until the end of the dungeon.",1,"item_omnistone",3,
+        {treasureItem = true, hasTarget = false}
+    ),
+    --[[Item("Room Key","Unlocks a locked room in this dungeon.",1,"dungeonKey",3,{hasTarget = false}),]]
+    Item("Seer's Eye","Reveal all hidden rooms in your current area.",1,"item_seerseye",3,{treasureItem = true, hasTarget = false}),
+    
+    }
 local recentlyPurchasedItems = {}
+local shopItemsToShow = {}
 
 local displayBehaviors = {
-    DisplayBehavior("Mobile","icon_spell_barrel_rocket","This unit can be ordered to move during combat."),
+    DisplayBehavior("Mobile","icon_spell_barrel_rocket","This unit can be ordered to move during combat. \n<color=yellow>(Right-Click and drag!)</color>"),
     DisplayBehavior("Poison","icon_spell_thunder_wave","This unit is taking Nature damage every second.", true),
     DisplayBehavior("Bleed","icon_enhance_flamecannon_furnace","This unit is taking bleed damage every second, and cannot heal.", true),
     DisplayBehavior("Spellshield","icon_spellshield","This unit is immune to disables and area-of-effect damage."),
@@ -200,25 +214,35 @@ local displayBehaviors = {
 
 local levelsWithoutPerk = 0
 local gamePerks = {
-GamePerk("Barterer","Items in the shop are discounted by 10%.","icon_coin00",false,true),
-GamePerk("Inspired Call","At the start of combat, all legionnaires spawn a footman.","icon_ingame_towerslot_crusader"),
-GamePerk("Light's Boon","While Priests have their active ability ready, they heal themselves for 2 life per second.","icon_ingame_towerslot_lighthouse",true,false,7),
-GamePerk("Improved Weapons","All friendly units deal 8% more damage.","icon_enhance_barracks_dualwield",true,true,10),
-GamePerk("Improved Armor","All friendly units take 8% less damage.","icon_enhance_barracks_secondwind",true,true,10),
-GamePerk("Steadfast","Your melee units cannot be stunned, and heal for 60 health at the start of every combat.","icon_spell_holy_avengers",true,5),
-GamePerk("Stealth Archers","At the start of combat, all Archers become stealthed for 4 seconds.","stealthEye",true,7),
+    --GamePerk(perkName, perkDesc, perkImage, applyBehavior, canStack  ,requiredDungeonLevel)
+--GamePerk("Barterer","Items in the shop are discounted by 10%.","icon_coin00",false,true),
+GamePerk("Inspired Call","At the start of combat, all legionnaires spawn 2 footman.","icon_ingame_towerslot_crusader"),
+GamePerk("Scouting Party","Reveal all rooms in this area. If all rooms are already revealed, reduce current threat by 20% instead.","scoutingParty",true,false),
+GamePerk("Improved Weapons","All friendly units deal 8% more damage.","icon_enhance_barracks_dualwield",true,false,10),
+GamePerk("Improved Armor","All friendly units take 8% less damage.","icon_enhance_barracks_secondwind",true,false,10),
+GamePerk("Steadfast","Your melee units cannot be stunned, and heal for 60 health at the start of every combat.","icon_spell_holy_avengers",true,false,5),
+GamePerk("Stealth Archers","At the start of combat, all Archers become stealthed for 4 seconds.","stealthEye",true,false,7),
 GamePerk("Team Discipline","Each party member gains +20% health if your party contains no duplicates of that class.","partyDiscipline",true,false,7),
-GamePerk("Scavenging","Gain 30 gold and a random consumable item.","relicScavenging",true,true),
+GamePerk("Loot Bird","Gain 40 gold and a random treasure item.","relicScavenging",true,false),
 GamePerk("Last Stand","For the next battle only, all party members deal 50% more damage.","icon_enhance_huntershut_watchful_eye",true,true,7),
-GamePerk("Campfire","Heal all party members for 40 health.","icon_spell_fire_trap",true,true,5),
-GamePerk("Giantslayer","Your heroes deal 10% more damage to bosses and elite units.","icon_ingame_towerslot_repeater",true,true,8),
-GamePerk("Resurrect","Resurrect a random hero that died this run.","icon_enhance_lighthouse_healingword",true,true,12),
+GamePerk("Campfire","Heal all party members for 40 health.","icon_spell_fire_trap",true,false,5),
+GamePerk("Giantslayer","Your heroes deal 10% more damage to bosses and elite units.","icon_ingame_towerslot_repeater",true,false,8),
+GamePerk("Resurrect","Resurrect a random hero that died this run.","icon_enhance_lighthouse_healingword",true,true,12, true),
 GamePerk("Grit","Your Berserkers and Riflemen are now considered Armored, and take 30% less damage.","icon_enhance_stoneguard_stoneskin",true,false),
-GamePerk("Powercharged","When your heroes have their active abilities ready, they move and attack 15% faster.","icon_enhance_crusader_punish",true,false),
+--GamePerk("Powercharged","When your heroes have their active abilities ready, they move and attack 15% faster.","icon_enhance_crusader_punish",true,false),
 GamePerk("Quickness","All friendly heroes move 30% faster.","icon_enhance_druidtower_wilds_shape",true,false,7),
+GamePerk("Spiked Shields","Your heroes gain +5% damage for each stack of Block they have.","icon_spell_shield",true,false),
+GamePerk("Spiked Potions","Using a potion reduces the remaining cooldown of your heroes' abilities by 10%.","icon_spell_bubbleblast",true,false),
 GamePerk("Absolute Focus","Your undamaged heroes deal 50% more damage.","focus",true,false),
 GamePerk("Persistence","Your heroes regenerate 1 health per second.","persistence",true,false),
-GamePerk("Fiery Focus","Reduces the cooldown of the Pyromancer ability by 20%.","icon_ingame_towerslot_scorcher",true,8)}
+GamePerk("Brutal Combat","All threat generation is increased by 25%. Your units deal 30% more damage.","icon_enhance_repeater_deadeye",true,false),
+GamePerk("Fiery Focus","Reduces the cooldown of the Pyromancer ability by 20%.","icon_ingame_towerslot_scorcher",true,8)
+
+}
+
+
+
+
 
 local forcedPerkOffering = nil
 local playerPerks = {} --Table w/ Perks the player has currently.
@@ -227,9 +251,10 @@ local roomDifficulty = {}
 local clearedRooms = {}
 local exploredRooms = {}
 local distanceFromRoomToStart = {}
+local isEncounterActive = false
 
 local roomTypes = {} --The index of this table will be the room ID.
-
+local specialRoomModifiers = {}
 
 --Affinity(affinityName, affinityPassiveText,affinityIcon, affinityRequiredBonusCount, affinityBonusText, requireExactCount, hasDedicatedBehavior )
 local AFFINITIES = { 
@@ -256,6 +281,10 @@ for index=1,(GetTableSize(AFFINITIES)-2) do
 end
 
 
+
+
+
+
 local enemiesRemaining = 0 --The number of enemy units currently alive (and waiting to die)
 local ENEMY_TYPES = {EnemyType("Bone Warrior",2,"Weak melee attacker."),
 EnemyType("Bone Warrior",2,"Weak melee attacker."),
@@ -276,7 +305,7 @@ EnemyType("Bone Archer",3,"Ranged attacker. Deals triple damage to non-armored u
  local HERO_TYPES = {
     HeroType("Legionnaire","None.","Spawn 2 footmen to fight alongside you.","icon_ingame_towerslot_dragoonbarracks"),
     HeroType("Priest","None,","Heal a target friendly unit.","icon_spell_holy_nova"),
-    HeroType("Assassin","At the start of combat, the Assassin teleports to the furthest 2 enemies and deals 35 damage to them.","The Assassin becomes stealthed for 6 seconds and gains +50% damage dealt, and -50% movement speed.","icon_ingame_hero_lava_chef"),
+    HeroType("Assassin","At the start of combat, the Assassin teleports to the furthest 2 enemies and deals 35 damage to them.","The Assassin becomes stealthed for 6 seconds and gains +50% damage dealt.","icon_ingame_hero_lava_chef"),
     HeroType("Alchemist","While at full health, the Alchemist always generates Team XP and her ability recharges twice as fast.","Channel for 2 seconds and brew a random potion.","icon_ingame_hero_crazy_alchemsit"),
     HeroType("Rifleman","The Rifleman's attacks deal large bonus damage to armored targets.","Deal moderate damage to all targets in front of the Rifleman, and stun them temporarily.","icon_ingame_towerslot_huntershut"),
     HeroType("Berserker","When between 30 and 70% health, the Berserker gains 50% attack speed, and takes 50% less damage.","The Berserker gains a large shield and increases his attack speed.","icon_enhance_flamecannon_furnace"),
@@ -461,13 +490,14 @@ local displayedEvents = {}
 --Sets map size, difficulty scaling, etc based on the given difficulty parameter at game start.
 function InitializeMapGenSettings()
     if(demonstrationMode == true) then
-        dungeonData.difficulty = 4
+        dungeonData.difficulty = 3
         mode = "Standard"
     end
     local mode = dungeonData.type
     local maxFloors = 3
     if(mode == "Conquest") then
         maxFloors = 4
+        HERO_CHOICE_LEVELS = {5,10,15}
     end
     if(mode == "Boss") then
         currentDungeonFloors = 2
@@ -479,10 +509,11 @@ function InitializeMapGenSettings()
     if(mode == "Boss" or (dungeonData.difficulty >=3 and dungeonData.difficulty < 5)) then
         mapGenSize = 2
     elseif(dungeonData.difficulty >= 5) then
-        mapGenSize = 3
+        mapGenSize = 4
+        
     end
-    difficultyScaleFactor = dungeonData.difficulty * 0.20
-    difficultyScaleFactor = Clamp(difficultyScaleFactor,0.20,2)
+    difficultyScaleFactor = dungeonData.difficulty * 0.25
+    difficultyScaleFactor = Clamp(difficultyScaleFactor,0.25,3)
 end
 DCEI.SetTooltipBackgroundImage("frame_dark_stroke")
 InitializeMapGenSettings()
@@ -1101,6 +1132,7 @@ function GenerateMap(floorID)
     exploredRooms = {}
     map = {}
     roomTypes = {}
+    specialRoomModifiers = {}
     timesNightmareUpdated = 0
     roomsClearedThisFloor = 0
     distanceFromRoomToStart = {}
@@ -1119,6 +1151,7 @@ function GenerateMap(floorID)
     
     for index = 1, 25 do
         table.insert(possibleRooms,index)
+        specialRoomModifiers[index] = "None"
     end
     local starterRoom = GetRandomNumber(1,5)
     
@@ -1456,32 +1489,7 @@ function GenerateMap(floorID)
     end
     furthestDistance = 0
     foreach(returnList, function(roomID)
-
-        --[[local distance = distanceFromRoomToStart[roomID]
-        local adjacent = GetAllPossibleAdjacentRooms(roomID)
-        foreach(adjacent, function(nearbyRoom)
-            if(TableContains(returnList,nearbyRoom)) then
-                local theirDistance = distanceFromRoomToStart[nearbyRoom]
-                if(theirDistance == distance or theirDistance+1 == distance or theirDistance-1 == distance) then
-                    --Distance validation good!
-                else
-                    --Distance validation is bad. Either their distance is wrong, or ours is.
-                    if(distance > theirDistance+1) then
-                        --Our distance is too large!
-                        distanceFromRoomToStart[roomID] = theirDistance + 1
-                        DCEI.LogMessage("Distance validation FAILED for point: "..roomID.." got original distance: "..distance.." :: Setting to: "..(theirDistance+1).." (via point: "..nearbyRoom..")")
-                    elseif(theirDistance > distance + 1) then
-                    DCEI.LogMessage("Distance validation FAILED for point: "..nearbyRoom.." got original distance: "..theirDistance.." :: Setting to: "..(distance+1).." (via point: "..roomID..")")
-                        --Their distance is too large!
-                        distanceFromRoomToStart[nearbyRoom] = distance + 1
-                    end
-                end
-            end
-            
-        
-        end)]]
-        --local dist = GetMapDistance(starterRoom,roomID,returnList)
-        
+        specialRoomModifiers[roomID] = "None"
         local dist = distanceFromRoomToStart[roomID]
         if(dist >= furthestDistance) then
             furthestDistance = dist
@@ -1497,12 +1505,12 @@ function GenerateMap(floorID)
         end
         --DCEI.LogMessage("Got room :"..roomID.." distance from start to be: "..dist)
     end)
-    if(isTopFloor == false) then
+    --if(isTopFloor == false) then
         SetRoomType(furthestRoom,"Stairs")
         ForceExploreRoom(furthestRoom)
-    end
+    --end
     
-    if(GetRoomCount("Stairs",returnList) < 1 and isTopFloor == false) then
+    if(GetRoomCount("Stairs",returnList) < 1) then
         SetRoomType(furthestRoom,"Stairs")
         --DCEI.LogMessage("WARNING -- Invalid map was generated without stairs on lower level, force-adding stairs! Got stairs count: "..GetRoomCount("Stairs"))
         --DCEI.LogMessage("Room ID 23 is: "..roomTypes[23])
@@ -1889,6 +1897,7 @@ end
     -- For any excess units after the required ones, random units will be picked to suit the remaining difficulty level required.
     -- An encounter can only have up to 18 enemy units total (Including 3 structures). Any additional difficulty after this is achieved by adding stacking buffs to all units.
 function GenerateEncounter(difficulty, requiredUnits, isElite, isAmbush, isNightmare)
+    isEncounterActive = true
     if(roomsCleared < 5 and isElite == false) then
         difficulty = difficulty * 0.65
     end
@@ -2383,8 +2392,9 @@ function UseSignatureAbility(unit)
             if(CanCast(unit)) then
                 DCEI.CastAbility(abilityToUse, unit, unit)
                 CreateUnitCastBar(unit, "Brew Potion", 2, function()
-                    local createdItem = GetRandomElement(shopItems)
+                    local createdItem = GetRandomElement(shopItemsToShow)
                     ClaimItem(createdItem)
+                    DCEI.LogMessage("Alchemist brewing item: "..createdItem.name)
                     CreateRelevantUnitText(unit, "Brewed: "..createdItem.name)
                 end)
             end
@@ -2407,6 +2417,19 @@ function UseSignatureAbility(unit)
     end
    
     
+end
+
+function BrewPotionCasted(context)
+    local unit = context.source
+    if(CanCast(unit)) then
+        --DCEI.CastAbility(abilityToUse, unit, unit)
+        CreateUnitCastBar(unit, "Brew Potion", 2, function()
+            local createdItem = GetRandomElement(shopItemsToShow)
+            ClaimItem(createdItem)
+            DCEI.LogMessage("Alchemist brewing item: "..createdItem.name)
+            CreateRelevantUnitText(unit, "Brewed: "..createdItem.name)
+        end)
+    end
 end
 
 function OnHeroicAbilityUsed(unit)
@@ -2561,6 +2584,7 @@ end
 local finished = false
 function OnBattleFinished(win)
     if(finished == true) then return end
+    isEncounterActive = false
     battleOngoing = false
     finished = true
     lastStandActive = false
@@ -2599,8 +2623,11 @@ function OnBattleFinished(win)
         local threatIncrease = 1 + currentFloor + roomDifficulty[currentRoom]
         IncreasePlayerThreat(threatIncrease)
         --ShowRelevantText("<color=red>++ "..threatIncrease.."% Threat")
+        DCEI.Wait(1)
+        ShowRelevantText("<color=purple>+ "..(roomDifficulty[currentRoom]+1).."% Team XP!")
         
-        DCEI.Wait(3)
+        SetPlayerPower(playerPower + roomDifficulty[currentRoom]+1)
+        DCEI.Wait(2)
         if(roomsCleared == 1 and win == true) then
             if(settings.helpTips == true) then
                 DCEI.ShowMessageWithButtonText("Threat", "As you defeat enemies, you will accumulate <color=red>Threat.</color> Once your Threat reaches 100%, you will start attracting dangerous enemies to pursue you. Defeating harder enemies generates more Threat.", "Next") 
@@ -2637,6 +2664,7 @@ function OnBattleFinished(win)
         
     else
         DCEI.ShowFeedbackMessage("Defeat!")
+        DCEI.Save.Set("EarnedGold", math.ceil((playerGold * 0.75)))
         DCEI.Save.Set("LastOutcome", "Defeat")
         DCEI.Save.Commit()
         DCEI.Wait(4)
@@ -2683,7 +2711,8 @@ function OnCheatEntered(message)
     end
     if(message == "gimmegrit") then
         forcedPerkOffering = gamePerks[14]
-    end 
+    end
+    
     if(message == "updateaffin") then
         UpdateActiveAffinities()
     end 
@@ -2698,6 +2727,7 @@ end
 
 function Cheat_InstaLoss()
     DCEI.ShowFeedbackMessage("Defeat!")
+    DCEI.Save.Set("EarnedGold", math.ceil((playerGold * 0.75)))
     DCEI.Save.Set("LastOutcome", "Defeat")
     DCEI.Save.Commit()
     DCEI.Wait(4)
@@ -2709,19 +2739,20 @@ function OnObjectivesComplete()
     DCEI.ShowFeedbackMessage("Run complete!")
     PlaySound("[Sound] Run Succeeded")
     DCEI.Wait(3)
-    ConfirmDialog("Run Complete!","You've completed all objectives for this run! You can continue exploring, or return to town.","Return to Town","Continue Exploring", function()
+    CompleteRun()
+    --[[ConfirmDialog("Run Complete!","You've completed all objectives for this run! You can continue exploring, or return to town.","Return to Town","Continue Exploring", function()
         CompleteRun()
     end,function()
         CreateEndRunButton()
         OnShoppingEnded()
-    end)
+    end)]]
 
     objectivesComplete = true
     
 end
 
 function CompleteRun()
-    DCEI.ShowFeedbackMessage("Run complete!")
+    --DCEI.ShowFeedbackMessage("Run complete!")
     PlaySound("[Sound] Run Succeeded")
     DCEI.Save.Set("EarnedGold", playerGold)
     DCEI.Save.Set("LastOutcome", "Victory")
@@ -2782,11 +2813,26 @@ function OnShoppingEnded()
 end
 
 function OnHeroChoiceMadeOrSkipped()
+    DCEI.LogMessage("Doing end of combat checks.")
+    if(threatLevel >= 30 and roomsClearedThisFloor >= 4 and GetSpecialRoomCount() < 2) then
+        local roomToConvert = GetRandomCombatRoom()
+        DCEI.LogMessage("Attempting to convert combat room to special property:"..roomToConvert)
+        if(roomToConvert >= 0 and specialRoomModifiers[roomToConvert] == "None") then
+            specialRoomModifiers[roomToConvert] = GetRandomSpecialRoomModifier()
+            DCEI.LogMessage("Attempting to convert combat room to special property:"..roomToConvert.." to type: "..specialRoomModifiers[roomToConvert])
+        end
+        ShowRelevantText("+ Threat Room!")
+    end
+    DCEI.Wait(1)
     UpdateMapPanel()
+    
     ToggleMapFrame(true)
+    
+    HandleSpecialRoomEffects()
     if(threatLevel >= 100) then
         HandleNightmareUpdate()
     end
+    
     earnsHeroThisLevel = false
     DCEI.ShowFeedbackMessage("Choose a room to move to!")
     
@@ -2957,7 +3003,7 @@ end
 
 
 local choiceDialog = nil
-function CreateThreeChoiceDialog(title, desc, choiceTexts, callbacks)
+function CreateThreeChoiceDialog(title, desc, choiceTexts, choiceTooltips, callbacks)
     if(choiceDialog ~= nil) then
         DCEI.LogMessage("Denied showing choice dialog box w/Title="..title.." because a confirm box is showing already!")
         return
@@ -2992,6 +3038,7 @@ function CreateThreeChoiceDialog(title, desc, choiceTexts, callbacks)
     DCEI.SetVerticalOffsetInParent(button, 15+50+50+20)
     DCEI.SetMinSize(button, dialogX-25, 50)
     DCEI.SetMaxSize(button, dialogX-25, 50)
+    DCEI.SetTooltipText(button, choiceTooltips[1])
     local buttonText = DCEI.NewText(button)
     DCEI.SetText(buttonText, choiceTexts[1])
     DCEI.SetMaxSize(buttonText, dialogX-30, 45)
@@ -3010,6 +3057,7 @@ function CreateThreeChoiceDialog(title, desc, choiceTexts, callbacks)
     DCEI.SetVerticalOffsetInParent(button, 15+50+12)
     DCEI.SetMinSize(button, dialogX-25, 50)
     DCEI.SetMaxSize(button, dialogX-25, 50)
+    DCEI.SetTooltipText(button, choiceTooltips[2])
     buttonText = DCEI.NewText(button)
     DCEI.SetText(buttonText, choiceTexts[2])
     DCEI.SetMaxSize(buttonText, dialogX-30, 45)
@@ -3028,6 +3076,7 @@ function CreateThreeChoiceDialog(title, desc, choiceTexts, callbacks)
     DCEI.SetVerticalOffsetInParent(button, 20)
     DCEI.SetMinSize(button, dialogX-25, 50)
     DCEI.SetMaxSize(button, dialogX-25, 50)
+    DCEI.SetTooltipText(button, choiceTooltips[3])
     buttonText = DCEI.NewText(button)
     DCEI.SetText(buttonText, choiceTexts[3])
     DCEI.SetMaxSize(buttonText, dialogX-30, 45)
@@ -3222,15 +3271,25 @@ function CreateAffinityFrame()
     end)
 
     function GetAffinityBonusDescriptionText(affinity)
+        
         local bonusEffectText = "<color=#ffff80>AFFINITY BONUS</color>\n"
         local pluralText = "s"
         if(affinity.requiredCount == 1) then
             pluralText = ""
         end
-        local text = bonusEffectText.."<color=#d9d9d9><size=12>*REQUIRES "..affinity.requiredCount.."+ "..affinity.name.." unit"..pluralText.."*</size></color>\n"
-        if(affinity.requireExactCount) then
-            text = bonusEffectText.."<color=#d9d9d9><size=12>*REQUIRES (Exactly) "..affinity.requiredCount.." "..affinity.name.." unit"..pluralText.."*</size></color>\n"
+        local colorString = "<color=#d9d9d9>"
+        if(affinity.bonusActive == false) then
+            --grey color the affinity bonus text if the player hasn't earned it.
+            colorString = "<color=#5c5c5c>"
+            bonusEffectText = "<color=#5c5c5c>AFFINITY BONUS\n"
         end
+
+        local text = bonusEffectText..colorString.."<size=12>*REQUIRES "..affinity.requiredCount.."+ "..affinity.name.." unit"..pluralText.."*</size></color>\n"
+        if(affinity.requireExactCount) then
+            text = bonusEffectText..colorString.."<size=12>*REQUIRES (Exactly) "..affinity.requiredCount.." "..affinity.name.." unit"..pluralText.."*</size></color>\n"
+        end
+
+        
         return "\n______________\n"..text.."\n"..affinity.description
     end
 
@@ -3298,7 +3357,7 @@ function OnItemSelected(slot)
 end
 
 function HandleItemUse(itemName)
-    if(battleOngoing == true or nightmareUpdating == true or mapFrameVisible == false or lootDialogShown == true or isChoosingPerk == true) then
+    if(battleOngoing == true or isEncounterActive or nightmareUpdating == true or mapFrameVisible == false or lootDialogShown == true or isChoosingPerk == true) then
         ShowErrorText("You can't do that now!")
         return
     end
@@ -3331,6 +3390,14 @@ function OnItemUsed(itemName)
         end
         
         
+    end
+    if(HasPerkWithName("Spiked Potions") == true) then
+        DCEI.LogMessage("Spiked potions applying stack!")
+        foreach(party, function(partyUnit)
+            if(partyUnit ~= nil) then
+                DCEI.AddMana(partyUnit, 1)
+            end
+        end)
     end
     UpdateInventoryUI()
 end
@@ -3786,7 +3853,7 @@ function CreateLootDialog(loot, callback)
     --DCEI.SetLeftAlignmentInParent(container)
     --DCEI.SetHorizontalOffsetInParent(container, 15)
     --DCEI.SetVerticalOffsetInParent(container, -5)
-    local DIALOG_X = 300
+    local DIALOG_X = 350
     local padding = DCEI.NewFrame(container)
     local abilityFrame = DCEI.NewFrame(padding)
     DCEI.SetBackgroundImage(abilityFrame, "frame_slot00")
@@ -4166,6 +4233,7 @@ function CreatePerkDialog(perks,callback)
     local SHOP_OFFSET = 30
     for perkID = 1, 3 do
             local perk = perks[perkID]
+            DCEI.LogMessage("Showing Perk with ID: "..perkID)
             local imagePath = perk.image
             --local description = HighlightKeywords(heroOption.description)
             --DCEI.LogMessage("Got Image path:"..imagePath)
@@ -4197,7 +4265,7 @@ function CreatePerkDialog(perks,callback)
             end)
     
             local titleText = DCEI.NewText(container)
-            DCEI.SetText(titleText, "<color=yellow>"..perk.name.."</color>\n"..perk.description)
+            DCEI.SetText(titleText, "<color=yellow>"..perk.name.."</color>\n"..HighlightKeywords(perk.description))
             --DCEI.SetRightAlignmentInParent(titleText)
             --DCEI.SetHorizontalOffsetInParent(titleText, 170)
             --DCEI.SetVerticalOffsetInParent(titleText, 0)
@@ -4228,6 +4296,9 @@ function OnPerkSelected(selectedPerk)
     if(selectedPerk.name == "Campfire") then
         campfireActive = true
     end
+    if(selectedPerk.name == "Scouting Party") then
+        ExecuteCampsiteDecision(3)
+    end
     if(selectedPerk.name == "Resurrect") then
         local deadHeroesIndexs = {}
         for index=1,PARTY_SIZE do
@@ -4235,12 +4306,15 @@ function OnPerkSelected(selectedPerk)
                 table.insert(deadHeroesIndexs, index)
             end
         end
-        local heroToRevive = deadHeroesIndexs[1]
-        partyUnitHealth[heroToRevive] = DCEI.UnitTypeHealth(partyUnits[heroToRevive])
+        if(GetTableSize(deadHeroesIndexs) >= 1) then
+            local heroToRevive = deadHeroesIndexs[1]
+            partyUnitHealth[heroToRevive] = DCEI.UnitTypeHealth(partyUnits[heroToRevive])
+        end
+        
     end
-    if(selectedPerk.name == "Scavenging") then
-        playerGold = playerGold + 30
-        ClaimItem(GetRandomElement(shopItems))
+    if(selectedPerk.name == "Loot Bird") then
+        playerGold = playerGold + 40
+        ClaimItem(GetRandomElement(treasureItems))
         UpdateGoldPanel()
     end
 
@@ -4249,10 +4323,82 @@ function OnPerkSelected(selectedPerk)
         
     end
     DCEI.LogMessage("Perk selected: "..selectedPerk.name..". New perk count: "..GetPerkCount(selectedPerk))
+    UpdatePerkBar()
 end
+
+local perkBar = nil
+local perkButtons = {}
+function UpdatePerkBar()
+    if(perkBar ~= nil) then
+        DCEI.Destroy(perkBar)
+        foreach(perkButtons, function(pButton)
+            if(pButton ~= nil) then
+                DCEI.Destroy(pButton)
+            end
+        end)
+    end
+    perkBar = nil
+    local container = DCEI.NewFrame(root)
+    perkBar = container
+    DCEI.SetTopAlignmentInParent(container)
+    DCEI.SetLeftAlignmentInParent(container)
+    local padding = DCEI.NewHStack(container)
+    DCEI.SetBackgroundImage(padding, "frame07")
+    DCEI.SetMinSize(padding, 500, 120)
+    DCEI.SetMaxSize(padding, 500, 120)
+    DCEI.SetTopAlignmentInParent(padding)
+    DCEI.SetLeftAlignmentInParent(padding)
+    DCEI.SetVerticalOffsetInParent(padding,25)
+    DCEI.SetHorizontalOffsetInParent(padding,10)
+    DCEI.SetBackgroundImageColor(padding, 246, 225, 87, 15 / 255)
+    --DCEI.SetPadding(padding,25)
+    DCEI.SetSpacing(padding,10)
+
+    if(GetTableSize(playerPerks) >= 1) then
+        --DCEI.SetActive(noPerksText, false)
+        for index=1, GetTableSize(playerPerks) do
+            local button = DCEI.NewFrame(padding)
+            DCEI.SetBackgroundImage(button, playerPerks[index].image)
+            --perkFrame[index] = button
+            DCEI.SetSize(button, 45, 45)
+            DCEI.SetTooltipText(button, playerPerks[index].description)
+            --DCEI.SetMaxSize(button, dialogX-45, heroIconY)
+            --local perkDesc = DCEI.NewText(button)
+            --DCEI.SetRightAlignmentInParent(perkDesc)
+            --DCEI.SetVerticalOffsetInParent(perkDesc, 40)
+            --DCEI.SetMaxSize(perkDesc, dialogX-45, 30)
+            --DCEI.SetTextFontSizeMin(perkDesc,13)
+            --DCEI.SetTextFontSizeMax(perkDesc,18)
+            --DCEI.SetMatchParent(perkDesc,true,true)
+            --DCEI.SetTextFontSize(perkDesc,15)
+            --DCEI.SetText(perkDesc, playerPerks[index].description)
+            
+        end
+    
+    else
+        --DCEI.SetActive(noPerksText, true)
+    end
+    
+end
+
 
 function PerkRequirementMet(perk)
     if(perk.specialRequirement == nil) then return true end
+    if(perk.specialRequirement == false) then return true end
+    DCEI.LogMessage("Checking special perk requirements for perk:"..(perk.name))
+    if(perk.name == "Resurrect") then
+        DCEI.LogMessage("Checking special perk requirements for Resurrect perk.")
+        local deadHeroesIndexs = {}
+        for index=1,PARTY_SIZE do
+            if(partyUnitHealth[index] ~= nil and partyUnitHealth[index] <= 0) then
+                table.insert(deadHeroesIndexs, index)
+            end
+        end
+        if(GetTableSize(deadHeroesIndexs) >= 1) then
+            DCEI.LogMessage("PASSED special perk requirements for Resurrect perk.")
+            return true
+        end
+    end
     return false
 end
 
@@ -4438,6 +4584,7 @@ function ApplyBattlePerks()
             foreach(party,function(partyUnit)
                 if(UnitIsAlive(partyUnit) and DCEI.UnitName(partyUnit) == "Legionnaire") then
                     DCEI.CreateEffect("Legion's Call",partyUnit,DCEI.GetUnitPosition2D(partyUnit).x,DCEI.GetUnitPosition2D(partyUnit).y)
+                    DCEI.CreateEffect("Legion's Call",partyUnit,DCEI.GetUnitPosition2D(partyUnit).x,DCEI.GetUnitPosition2D(partyUnit).y)
                 end
             end)
             
@@ -4505,6 +4652,16 @@ function ApplyBattlePerks()
     end)
 end
 
+function GetPerkByName(perkName)
+    local returnCount = 0
+    for index=1,GetTableSize(gamePerks) do
+        if(gamePerks[index].name == perkName) then
+            return gamePerks[index]
+        end
+    end
+    return nil
+end
+
 function GetPerkCount(perk)
     local returnCount = 0
     for index=1,GetTableSize(playerPerks) do
@@ -4523,6 +4680,14 @@ function GetPerkCountByName(perkName)
         end
     end
     return returnCount
+end
+
+function HasPerkWithName(perkName)
+    return GetPerkCountByName(perkName) >= 1
+end
+
+function HasPerk(perkLink)
+    return GetPerkCount(perkLink) >= 1
 end
 
 function UpdateActiveAffinities()
@@ -4665,7 +4830,7 @@ function CreateShopDialog(callback)
     
     local padding = DCEI.NewFrame(container)
     local dialogX = 620
-    local dialogY = 435
+    local dialogY = 355
     DCEI.SetBackgroundImage(padding, "frame_slot00")
     DCEI.SetMinSize(padding, dialogX, dialogY)
     DCEI.SetMaxSize(padding, dialogX, dialogY)
@@ -4711,17 +4876,18 @@ function CreateShopDialog(callback)
     local SHOP_X = 80
     local SHOP_Y = 80
     local SHOP_OFFSET = 22
-    local itemsPerColumn = 3
+    local itemsPerColumn = 2
     local buttonTextOffset = SHOP_X + 15
-    for shopID = 1, 5 do
-            local shopItem = shopItems[shopID]
+    shopItemsToShow = GetRandomShopItems()
+    for shopID = 1, 4 do
+            local shopItem = shopItemsToShow[shopID]
 
 
             local imagePath = shopItem.image
             --local description = HighlightKeywords(heroOption.description)
             
             local button = DCEI.NewButton(container)
-            local yPos = -190 + ((SHOP_OFFSET + SHOP_Y) * (((shopID-1) % itemsPerColumn)+1))
+            local yPos = -142 + ((SHOP_OFFSET + SHOP_Y) * (((shopID-1) % itemsPerColumn)+1))
             local bonusX = (SHOP_X + 220) 
             if(shopID <= itemsPerColumn) then
                 bonusX = 0
@@ -4764,6 +4930,24 @@ function CreateShopDialog(callback)
     }
 end
 
+function GetRandomShopItems()
+    local possibleItems = {}
+    foreach(shopItems, function(item)
+        DCEI.LogMessage("Got item:"..item.name)
+        --if(item.flags == nil) then  DCEI.LogMessage("Item is a nilflag-treasure item!") end
+        --if(item.flags ~= nil and item.flags.treasureItem == true) then  DCEI.LogMessage("Item IS treasure item!") end
+        --if(string.match(item.name, "Affinity Tome:") == true) then DCEI.LogMessage("Item FAILS non-affinity tome check.") end
+        if((item.flags == nil or item.flags.treasureItem == nil or item.flags.treasureItem == false) and item ~= nil) then
+            DCEI.LogMessage("Got viable shop item:"..item.name)
+            table.insert(possibleItems, item)
+        end
+    end)
+    possibleItems = ShuffleTable(possibleItems)
+    return possibleItems
+end
+--local testItems = GetRandomShopItems()
+shopItemsToShow = GetRandomShopItems()
+--DCEI.LogMessage("Got : "..#testItems.." viable shop items!")
 function AttemptBuyItem(shopItem)
     DCEI.LogMessage("Attempted to buy item: "..shopItem.name)
     if(playerGold >= shopItem.cost and GetRemainingStockForItem(shopItem) > 0) then
@@ -4781,7 +4965,7 @@ function AttemptBuyItem(shopItem)
 end
 
 function UpdateShopItemListings()
-    for shopID = 1, 5 do
+    for shopID = 1, 4 do
         DCEI.SetText(itemShopText[shopID], GetItemShopItemText(shopID))
     end
 end
@@ -4799,7 +4983,7 @@ function GetRemainingStockForItem(item)
 end
 
 function GetItemShopItemText(shopID)
-    local shopItem = shopItems[shopID]
+    local shopItem = shopItemsToShow[shopID]
     local colorString = "<color=yellow>"
     local stock = GetRemainingStockForItem(shopItem)
     if(stock <= 0) then
@@ -5523,6 +5707,7 @@ function CreatePowerBar()
     CheckPowerGains()
 end
 
+
 function CreateRelevantUnitText(unit, text)
     local options = { 
         offset = {
@@ -5542,7 +5727,14 @@ end
 
 function CheckPowerGains()
     if(battleOngoing == false) then return end
-    local gainedPower = 2 + (recentElitesKilled * 20)
+    local perkCount = GetTableSize(playerPerks)
+    local gainedPower = 8 - perkCount
+    if(gainedPower < 3) then
+        gainedPower = 3
+    end
+    if(testMode) then
+        gainedPower = 10
+    end
     recentElitesKilled = 0
     local options = { 
         offset = {
@@ -5551,8 +5743,8 @@ function CheckPowerGains()
             front = 0
         }
     }
-    local powerPerHero = 2.5
-    if(PARTY_SIZE >= 4) then
+    --local powerPerHero = 2.5
+    --[[if(PARTY_SIZE >= 4) then
         powerPerHero = (8 / PARTY_SIZE)
     end
     if(PARTY_SIZE == 2) then
@@ -5560,13 +5752,13 @@ function CheckPowerGains()
     end
     if(PARTY_SIZE == 1) then
         powerPerHero = 6
-    end
+    end]]
     if(doublePower == true) then
         powerPerHero = powerPerHero * 2
     end
-    foreach(party,function(hero)
+    --[[foreach(party,function(hero)
         if(hero ~= nil and (DCEI.GetManaValue(hero) >= MANA_COST or (DCEI.UnitName(hero) == "Alchemist" and GetUnitHealthFraction(hero) >= 0.99))) then
-            gainedPower = gainedPower + powerPerHero
+            gainedPower = gainedPower-- + powerPerHero
             
             if(playerPower >= 100) then
                 DCEI.ShowFloatingText(DCEI.GetUnitPosition3D(hero),"<size=12><color=#E98C00>XP Full!",0.7,0,1,options )
@@ -5584,7 +5776,7 @@ function CheckPowerGains()
             end
             
         end
-    end)
+    end)]]
     
     --playerPower = playerPower + gainedPower
     local timeToChange = 2.99
@@ -5777,6 +5969,7 @@ end
 
 local mapRoomButtons = {}
 local mapRoomHighlightButtons = {}
+local mapRoomPropertyIndicator = {}
 local currentRoomIndicator = nil
 local mapFrame = nil
 local threatPanelText = nil
@@ -5791,6 +5984,7 @@ function CreateMapPanel(floorID)
         DCEI.Destroy(mapFrame)
         mapRoomButtons = {}
         mapRoomHighlightButtons = {}
+        mapRoomPropertyIndicator = {}
         currentRoomIndicator = nil
         threatPanelText = nil
         areaPanelText = nil
@@ -5992,7 +6186,11 @@ function CreateMapPanel(floorID)
                 DCEI.SetVerticalOffsetInParent(bgButton, yPos)
                 DCEI.SetHorizontalOffsetInParent(bgButton, xPos)
                 DCEI.SetSize(bgButton, BUTTON_X-1, BUTTON_Y-3)
-                
+
+                local borderHighlight = DCEI.NewHighlight(button)
+                mapRoomPropertyIndicator[roomID] = borderHighlight
+                DCEI.SetSize(borderHighlight,BUTTON_X,BUTTON_Y)
+                DCEI.SetBackgroundImageColor(borderHighlight,1,1,1,1)
                 
         
             end
@@ -6031,6 +6229,11 @@ function GetButtonPosition(roomButtonID)
     local yPos = INITIAL_OFFSETY + ((OFFSET + BUTTON_Y) * (colID - 1))
     return {x=xPos,y=yPos}
 end
+
+
+
+
+
 
 local nightmareUpdating = false
 local timesNightmareUpdated = 0
@@ -6101,6 +6304,76 @@ function DoNightmarePass(coreRoom)
     return roomsToConvert
 end
 
+function GetSpecialRoomCount()
+    local count = 0
+    foreach( specialRoomModifiers, function(modifier)
+        if(modifier ~= nil and modifier ~= "None" ) then
+            count = count + 1
+            DCEI.LogMessage("Found special room of type: "..modifier)
+        end
+    end)
+    DCEI.LogMessage("Got special room count: "..count)
+    return count
+
+end
+
+
+function GetRandomCombatRoom()
+    local possibleRooms = {}
+    for index = 1, 25 do
+        if(DoesRoomExist(index)) then
+            if((GetRoomType(index) == "Combat" or GetRoomType(index) == "Elite") and HasRoomBeenVisited(index) == false and IsRoomExplored(index)) then
+                
+                table.insert( possibleRooms, index)
+            end
+        end
+    end
+    if(GetTableSize(possibleRooms) <= 0) then
+        return -1
+    end
+    return GetRandomElement(possibleRooms)
+end
+
+function GetRandomSpecialRoomModifier()
+    local possibleModifiers = {"PreparingOthers" , "AlertingOthers"}
+    return GetRandomElement(possibleModifiers)
+end
+
+function HandleSpecialRoomEffects()
+    nightmareUpdating = true
+    local index = 1
+    foreach(specialRoomModifiers, function(modifier)
+        if(modifier == "AlertingOthers" and HasRoomBeenVisited(index) == false) then
+            IncreasePlayerThreat(5)
+            DCEI.AnimateAlpha(mapRoomButtons[index], 0, 0.45, 0.5, "OutSine")
+            ExecuteAfter(function()
+                DCEI.AnimateAlpha(mapRoomButtons[index], 0.45, 1, 0.8, "OutSine")
+            end,0.5)
+        end
+        if(modifier == "PreparingOthers" and HasRoomBeenVisited(index) == false) then
+            roomDifficulty[index] = roomDifficulty[index] + 1
+            local adjacent = GetAllPossibleAdjacentRooms(index)
+            foreach(adjacent, function(roomID)
+                if(DoesRoomExist(roomID) and roomDifficulty[roomID] ~= nil) then
+                    roomDifficulty[roomID] = roomDifficulty[roomID] + 1
+                end
+            end)
+            ShowRelevantText("+ Encounter Difficulty")
+            DCEI.AnimateAlpha(mapRoomButtons[index], 0, 0.45, 0.5, "OutSine")
+            ExecuteAfter(function()
+                DCEI.AnimateAlpha(mapRoomButtons[index], 0.45, 1, 0.8, "OutSine")
+            end,0.5)
+        end
+        if(modifier ~= nil and modifier ~= "None") then
+            DCEI.Wait(1)
+        end
+        
+        index = index + 1
+    end)
+
+    nightmareUpdating = false
+end
+
 local mapFrameVisible = false
 function ToggleMapFrame(state)
     mapFrameVisible = state
@@ -6109,8 +6382,24 @@ function ToggleMapFrame(state)
         if(DoesRoomExist(index)) then
             if((AreRoomsAdjacent(index, currentRoom) or index == currentRoom or IsRoomExplored(index)== false)) then
                 DCEI.SetBackgroundImageGrayScale(mapRoomButtons[index], false)
+                
+                if(AreRoomsAdjacent(index, currentRoom)) then
+                    --DCEI.LogMessage("Showing border indicator for room: "..index.." due to adjacency with current room.")
+                    DCEI.SetActive(mapRoomPropertyIndicator[index], true)
+                    DCEI.SetBackgroundImageColor(mapRoomPropertyIndicator[index],1,1,1,1)
+                else
+                    DCEI.SetActive(mapRoomPropertyIndicator[index], false)
+                end
+                
             else
                 DCEI.SetBackgroundImageGrayScale(mapRoomButtons[index], true)
+                if ((GetRoomType(index) == "Combat" or GetRoomType(index) == "Elite" ) and specialRoomModifiers[index] ~= "None")then
+                    DCEI.SetBackgroundImageColor(mapRoomPropertyIndicator[index],1,0,0,1)
+                    DCEI.SetActive(mapRoomPropertyIndicator[index], true)
+                else
+                    DCEI.SetActive(mapRoomPropertyIndicator[index], false)
+                end
+                
             end
             --DCEI.SetTooltipText(mapRoomButtons[index],"")
         end
@@ -6172,15 +6461,22 @@ function GotoRoom(targetRoomButton)
     
     if(battleOngoing == false and AreRoomsAdjacent(targetRoom,currentRoom)) then
         if(GetRoomType(targetRoom) == "Stairs") then
-            ConfirmDialog("Next Area?","Would you like to progress to the next area? You will not be able to backtrack!","Continue","Go Back", 
-            function()
-                currentRoom = targetRoom
-                ToggleMapFrame(false)
-                OnRoomEnter(targetRoom)
-            end,function()
-                
-            end)
-            return
+            if(currentFloor ~= currentDungeonFloors) then
+                ConfirmDialog("Next Area?","Would you like to progress to the next area? You will not be able to backtrack!","Continue","Go Back", 
+                function()
+                    currentRoom = targetRoom
+                    ToggleMapFrame(false)
+                    OnRoomEnter(targetRoom)
+                end,function()
+                    
+                end)
+                return
+
+            else
+            --End the dungeon run
+            CompleteRun()
+            end
+            
         end
         currentRoom = targetRoom
         ToggleMapFrame(false)
@@ -6195,6 +6491,12 @@ function GotoRoom(targetRoomButton)
 end
 
 function IncreasePlayerThreat(modifyValue)
+    if(HasPerkWithName("Brutal Combat") == true and modifyValue > 0) then
+        DCEI.LogMessage("Increasing threat gain due to brutal combat!")
+        modifyValue = modifyValue * 1.3
+        modifyValue = math.floor( modifyValue )
+    end
+    
     threatLevel = threatLevel + modifyValue
     ShowRelevantText("<color=red>+ "..modifyValue.."% Threat")
     UpdateMapPanel()
@@ -6245,8 +6547,9 @@ function OnRoomEnter(value)
             ShowEvent(GetRandomEvent())
         elseif(roomType == "Campsite") then
             DCEI.Wait(1.0) 
-            CreateThreeChoiceDialog("Campsite","You've arrived at a campsite. You can either restore health to your heroes, train for the next battle, or scout all rooms in this area.",
-            {"Restore 20% of HP to all heroes.", "<size=16>For 1 battle, all heroes deal 20% more damage and generate double XP.","Reveal all rooms on this floor."}, 
+            CreateThreeChoiceDialog("Campsite","You've arrived at a campsite! Choose an action.",
+            {"Rest", "Train","Scout"},
+            {"Restore 20% of HP to all heroes.", "For 1 battle, all heroes deal 20% more damage and generate double XP.","Reveal all rooms on this floor. If all rooms are already revealed, reduce your threat by 20%."}, 
             {
                 function()
                     ExecuteCampsiteDecision(1)
@@ -6320,9 +6623,18 @@ function ExecuteCampsiteDecision(decisionID)
         doublePower = true
         lastStandActive = true
     else
+        local revealedRooms = 0
         foreach(map, function(room)
+            if(IsRoomExplored(room) == false) then
+                revealedRooms = revealedRooms + 1
+            end
             ExploreRoom(room)
+            
+
         end)
+        if(revealedRooms == 0) then
+            DecreasePlayerThreat(20)
+        end
         DCEI.ShowFeedbackMessage("All rooms explored!")
     end
     IncreaseDungeonLevel()
@@ -6359,12 +6671,21 @@ function UpdateMapPanel()
     for index = 1, 25 do
         local imagePath = "icon_enhance_arrowtower_huntersmark"
         local tooltipText = ""
-
+        local bonusTooltipInfo = ""
         if(DoesRoomExist(index)) then
+            if(specialRoomModifiers[index] ~= "None") then
+                --DCEI.NewHighlight(mapRoomButtons[index])
+                if(specialRoomModifiers[index] == "AlertingOthers") then
+                    bonusTooltipInfo = "\n<color=yellow>(Alerting Others!) This room is increasing your threat level every turn. Clear it out to cancel this effect."
+                end
+                if(specialRoomModifiers[index] == "PreparingOthers") then
+                    bonusTooltipInfo = "\n<color=yellow>(Preparing Others!) This room is increasing the difficulty of nearby rooms every turn. Clear it out to cancel this effect."
+                end
+            end
             if(GetRoomType(index) == "Combat") then
                 --DCEI.LogMessage("Room: "..index.." is a combat room.")
                 imagePath = "icon_enhance_arrowtower_huntersmark"
-                tooltipText = "<color=#e3dd30>Fight</color>\nThis room contains a combat encounter.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]
+                tooltipText = "<color=#e3dd30>Fight</color>\nThis room contains a combat encounter.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]..bonusTooltipInfo
             end
             if(GetRoomType(index) == "Shop") then
                 imagePath = "shopRoom"
@@ -6376,7 +6697,7 @@ function UpdateMapPanel()
             end
             if(GetRoomType(index) == "Elite") then
                 imagePath = "eliteFightIcon"
-                tooltipText = "<color=#e3dd30>Elite Fight</color>\nThis room contains harder than normal enemies, but also better loot.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]
+                tooltipText = "<color=#e3dd30>Elite Fight</color>\nThis room contains harder than normal enemies, but also better loot.".."\n<color=yellow>Difficulty: "..roomDifficulty[index]..bonusTooltipInfo
             end
             if(GetRoomType(index) == "Nightmare") then
                 --DCEI.LogMessage("Room: "..index.." is a nightmare room.")
@@ -6392,7 +6713,7 @@ function UpdateMapPanel()
                 tooltipText = "<color=#e3dd30>Campsite</color>\nThis area allows you to heal your heroes, or prepare them for future battles."
             end
             if(GetRoomType(index) == "Stairs") then
-                imagePath = "icon_ingame_towerslot_upgrade"
+                imagePath = "icon_misc_portal_blue"
                 tooltipText = "<color=#e3dd30>Passage</color>\nThis room allows you to move to the next area of this dungeon."
             end
             if(IsRoomExplored(index) == false) then
@@ -6413,7 +6734,7 @@ function UpdateMapPanel()
             else
                 DCEI.EnableButton(mapRoomButtons[index],true)
             end
-            --DCEI.LogMessage("Setting tooltip of room: "..index.." to:"..tooltipText)
+            
             DCEI.SetTooltipText(mapRoomButtons[index], tooltipText)
             DCEI.SetBackgroundImage(mapRoomButtons[index], imagePath)
         end
@@ -6459,6 +6780,8 @@ DCEI.TriggerAddEffectEvent("OnEliteDeath", OnEliteDeath)
 DCEI.TriggerAddEffectEvent("AI_Cast_Deathcall", AICastDeathcall)
 DCEI.TriggerAddEffectEvent("AI_OozeSplit", AICastOozeSplit)
 DCEI.TriggerAddEffectEvent("AI_WitchHex", AICastWitchHex)
+DCEI.TriggerAddEffectEvent("Brew Potion", BrewPotionCasted)
+
 DCEI.TriggerAddTextCommandEvent(OnCheatEntered)
 DCEI.TriggerAddUnitSpawnEvent(DCEI.UnitAny, function()
     local tUnit = DCEI.TriggeringUnit
@@ -6599,6 +6922,9 @@ function OnMapStart()
         end,0.1)
     end)
     settings.helpTips = false
+    if(testMode) then
+        GiveFreePerk(4,false)
+    end
     ExecuteAfter(function()
         StartGame()
     end,1)

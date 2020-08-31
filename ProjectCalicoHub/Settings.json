@@ -5,7 +5,8 @@
             "ProjectCalico_MainMod"
         ],
         "transitionMaps": [
-            "ProjectCalico"
+            "ProjectCalico",
+            "ProjectCalico_Tutorial"
         ]
     },
     "musicSettings": {

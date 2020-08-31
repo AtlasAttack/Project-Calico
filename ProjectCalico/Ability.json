@@ -21,7 +21,7 @@
                 "missile": 2,
                 "structure": 2
             },
-            "highlight": true,
+            "highlight": false,
             "targetingValidCursorActor": "Heal Target Cursor Valid",
             "targetingInvalidCursorActor": "_FX CursorTarget Invalid"
         },
@@ -267,9 +267,7 @@
             "targetRangeMode": 0,
             "effect": "Autocast_Scattershot",
             "stats": {
-                "period": 0.5,
-                "range": 4,
-                "arc": 45
+                "range": 4
             },
             "cost": {
                 "mana": 10
@@ -347,6 +345,19 @@
                 "invulerable": 2
             },
             "chargeIgnoreCooldown": true
+        },
+        "Flurry": {
+            "abilityType": 2,
+            "castType": 2,
+            "targetRangeMode": 0,
+            "effect": "Apply Flurry",
+            "stats": {
+                "range": 10
+            },
+            "cost": {
+                "mana": 10
+            },
+            "description": ""
         }
     }
 }

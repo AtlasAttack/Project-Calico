@@ -1,7 +1,6 @@
 {
     "settings": {
-        "version": "0.0.6",
-        "type": 1,
+        "version": "0.0.14",
         "dependencies": [
             "Arcade/Core"
         ],
@@ -31,7 +30,23 @@
             "Deathspeaker",
             "Temp Marker Unit",
             "Point_Marker Alpha",
-            "DummyFillUnit"
+            "DummyFillUnit",
+            "Waypoint Marker",
+            "Malevolent Ooze",
+            "Greater Malevolent Ooze",
+            "Crystal Golem",
+            "Herald",
+            "Witch",
+            "Decay Dummy Unit",
+            "Alchemist",
+            "Assassin",
+            "SmokeUnit",
+            "Armored Golem",
+            "Deranged Warthog",
+            "Druid",
+            "Knight",
+            "Protector",
+            "Nightmare Abomination"
         ],
         "usedEffects": [
             "[Sound] Gold Collect",
@@ -39,7 +54,8 @@
             "[Sound] Battle Start",
             "[Sound] Perk Earned",
             "[Sound] Run Succeeded",
-            "AI_Cast_Deathcall"
+            "AI_Cast_Deathcall",
+            "Brew Potion"
         ],
         "usedBehaviors": [
             "Paused",
@@ -61,7 +77,42 @@
             "Fleetfoot",
             "Absolute Focus",
             "Level Persist",
-            "Persistence"
+            "Persistence",
+            "Ignore Collision",
+            "Being Ordered",
+            "Standard HelperTag",
+            "Quickbrewing",
+            "Aqua",
+            "Pyro",
+            "Holy",
+            "Brawler",
+            "Ranger",
+            "Naturalist",
+            "Specialist",
+            "Spellcaster",
+            "Trickster",
+            "AffinityBonus_Trickster",
+            "Poison",
+            "AffinityBonus_Ranger",
+            "AffinityBonus_Armored",
+            "AffinityBonus_Brawler",
+            "AffinityBonus_Holy",
+            "Block",
+            "AffinityBonus_Specialist",
+            "Pacify Unit",
+            "AffinityBonus_Naturalist",
+            "AffinityBonus_Spellcaster",
+            "Bleed",
+            "Regrowth Healing",
+            "Taunt",
+            "AffinityBonusDamage",
+            "Nightmare",
+            "AffinityBonus_Aqua",
+            "AffinityBonus_Pyro"
+        ],
+        "usedSoundAssets": [
+            "desecrate_impact",
+            "evilwings_meteor_impact"
         ],
         "usedAtlasAssets": [
             "stealthEye",
@@ -81,7 +132,41 @@
             "hexPurple",
             "hexRed",
             "castBarFill",
-            "gradientBGOvalMasked"
+            "affinityArmored",
+            "affinityBrawler",
+            "affinityHoly",
+            "affinityRanger",
+            "affinityNaturalist",
+            "affinitySpecialist",
+            "affinitySpellcaster",
+            "affinityTrickster",
+            "affinityAqua",
+            "affinityPyro",
+            "icon_spellshield",
+            "hero_activeInfo",
+            "affinityEmptyIcon",
+            "affinityBonus",
+            "emptyRoom",
+            "hiddenRoom",
+            "affinityNightmare",
+            "placeholder",
+            "startBattle_button",
+            "icon_ingame_campfire",
+            "icon_ingame_towerslot_dragoonbarracks",
+            "eventRoom",
+            "shopRoom",
+            "treasureRoom",
+            "item_omnistone",
+            "dungeonKey",
+            "item_seerseye",
+            "item_tome",
+            "item_tome2",
+            "item_tome3",
+            "icon_ingame_blackpotion",
+            ""
+        ],
+        "usedSpriteAssets": [
+            "btn_rounded01"
         ]
     }
 }

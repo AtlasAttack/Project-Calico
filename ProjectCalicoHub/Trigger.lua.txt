@@ -55,8 +55,8 @@ end
 
 function DefineZones()
     local zoneList = {}
-    table.insert(zoneList, Zone("Training Grounds","Instructor Price will take you through the basics of adventuring.","elemental_trial_light","None","UnknownMap",nil,{isTutorial = true}))
-    table.insert(zoneList, Zone("Haunted Forest","Undead soldiers and dark spellcasters roam these cursed woods.","elemental_trial_dark","<color=yellow>Restless Dead</color>\n\nSuccessfully channeled abilities spawn hostile undead that attack your heroes.","ProjectCalico","Training Grounds",nil))
+    table.insert(zoneList, Zone("Training Grounds","Instructor Price will take you through the basics of adventuring.","elemental_trial_fire","None","ProjectCalico_Tutorial",nil,{isTutorial = true}))
+    table.insert(zoneList, Zone("Haunted Forest","Undead soldiers and dark spellcasters roam these cursed woods.","elemental_trial_dark","<color=yellow>Restless Dead</color>\n\nSuccessfully channeled abilities spawn hostile undead that attack your heroes.","ProjectCalico","Training Grounds",{isTutorial = false}))
     return zoneList
 end
 
@@ -109,7 +109,7 @@ local conversationStart = {
     "I'll be making preparations here. When ready, embark on your first mission!",
     callback = function()
         DCEI.LogMessage("On Convo done called!")
-        CreateEmbarkPanel()
+        --CreateEmbarkPanel()
     end
 }
 local BASE_XP_NEEDED = 200
@@ -209,7 +209,7 @@ local expeditionNPC = DCEI.FindUnit("NPC1")
 DCEI.SetTooltipBackgroundImage("frame_inner_blue")
 local MAIN_UI = {frame = nil}
 MAIN_UI.selectedModeType = "Standard"
-MAIN_UI.selectedZone = 2
+MAIN_UI.selectedZone = 1
 
 -- TRIGGERS
 
@@ -274,9 +274,17 @@ function InitializePersistentData()
         DCEI.Save.Commit()
     elseif(DCEI.Save.Get("LastOutcome") ~= nil) then
         if(DCEI.Save.Get("LastOutcome") == "Defeat") then
-            DCEI.ShowMessageWithButtonText("Defeated!","Your party was killed during your last mission. As a result you didn't earn any gold.","Damn")
+            if(gainedGold ~= nil) then
+                playerGold = playerGold + gainedGold
+                DCEI.AddGold(gainedGold)
+                DCEI.Save.Set("PlayerGold",playerGold)
+                DCEI.ShowMessageWithButtonText("Defeated!","Your last mission earned you <color=yellow>"..(gainedGold).." gold</color>!","Continue")
+                DCEI.Save.Set("MissionsPlayed",missionsPlayed + 1)
+            end
+            DCEI.Save.Set("EarnedGold",nil)
+            
             DCEI.Save.Set("LastOutcome",nil)
-            DCEI.Save.Set("MissionsPlayed",missionsPlayed + 1)
+            
             DCEI.Save.Commit()
         end
     elseif(missionsPlayed <= 0) then
@@ -365,6 +373,10 @@ end
 
 function GetCurrentDifficultyFromMode(modeName)
     return GetCurrentZone().currentDifficulty[GetDifficultyIntFromMode(modeName)]
+end
+
+function GetCurrentDifficultyInZoneFromMode(zone, modeName)
+    return zone.currentDifficulty[GetDifficultyIntFromMode(modeName)]
 end
 
 function ConvertNumberToRomanNumeral(number)
@@ -568,6 +580,10 @@ function CreateMainDialog()
     if(GetCurrentDifficultyFromMode("Standard") < 5) then
         DCEI.EnableButton(conquestButton, false)
         DCEI.SetTooltipText(conquestButton,"You can't choose this mode until you've beaten Standard V.")
+        DCEI.LogMessage("Current S.Diff: "..GetCurrentDifficultyFromMode("Standard"))
+    else
+        DCEI.EnableButton(conquestButton, true)
+        DCEI.SetTooltipText(conquestButton,"Choose a team of heroes and take on hostile mobs in this zone!")
     end
 
     local conquestButtonText = DCEI.NewText(conquestButton)
@@ -594,7 +610,7 @@ function CreateMainDialog()
     DCEI.SetTooltipText(bossButtonText,"Take on this zone's unique boss and earn powerful rewards!")
     DCEI.SetVerticalOffsetInParent(bossButtonText,0)
     
-
+    --CURRENT ZONE INDICATOR / UI
     local zoneIndicator = DCEI.NewFrame(padding)
     DCEI.SetBackgroundImage(zoneIndicator,"elemental_trial_dark")
     DCEI.SetSize(zoneIndicator,400,400)
@@ -621,6 +637,8 @@ function CreateMainDialog()
     DCEI.SetLeftAlignmentInParent(leftZoneButton)
     DCEI.SetHorizontalOffsetInParent(leftZoneButton,-340)
     DCEI.SetBackgroundImage(leftZoneButton,"arrow01_l")
+
+    
 
     local rightZoneButton = DCEI.NewButton(zoneIndicator)
     DCEI.SetSize(rightZoneButton,80,125)
@@ -697,6 +715,8 @@ function CreateMainDialog()
     DCEI.SetHorizontalOffsetInParent(chestName,160)
     DCEI.SetVerticalOffsetInParent(chestName,-10)
 
+    
+
     MAIN_UI.UpdateRewardText = function()
         local rewardChest = GetChestRewardFromMode(MAIN_UI.selectedModeType)
         DCEI.SetText(chestName,"<color=yellow>"..rewardChest.name)
@@ -721,6 +741,55 @@ function CreateMainDialog()
     DCEI.SetTopAlignmentInParent(zoneText)
     DCEI.SetSize(zoneText,195,370)
     DCEI.SetVerticalOffsetInParent(zoneText,105)
+    
+
+    MAIN_UI.UpdateZone = function()
+        --Zone data: {name , description, image, twist = ,map, requirementZone, flags}
+        local currentZone = GetCurrentZone()
+        if(currentZone.flags.isTutorial) then
+            
+        end
+        DCEI.SetActive(conquestButton, not currentZone.flags.isTutorial )
+        DCEI.SetActive(bossButton, not currentZone.flags.isTutorial )
+
+        DCEI.SetBackgroundImage(zoneIndicator, currentZone.image)
+        DCEI.SetText(twistText,currentZone.twist)
+        DCEI.SetText(bannerText,currentZone.name)
+        DCEI.SetText(zoneText,"<color=#b3b3b3>"..currentZone.description)
+
+        if(GetCurrentDifficultyFromMode("Standard") < 5) then
+            DCEI.EnableButton(conquestButton, false)
+            DCEI.SetTooltipText(conquestButton,"You can't choose this mode until you've beaten Standard V.")
+            DCEI.LogMessage("Current S.Diff: "..GetCurrentDifficultyFromMode("Standard"))
+        else
+            DCEI.EnableButton(conquestButton, true)
+            DCEI.SetTooltipText(conquestButton,"Choose a team of heroes and take on hostile mobs in this zone!")
+        end
+
+        if(GetCurrentDifficultyFromMode("Conquest") < 5) then
+            DCEI.EnableButton(bossButton, false)
+            DCEI.SetTooltipText(bossButton,"You can't choose this mode until you've beaten Conquest V.")
+        else
+            DCEI.EnableButton(bossButton, true)
+        end
+
+    end
+
+    MAIN_UI.UpdateZone()
+
+    DCEI.SetOnClickCallback(leftZoneButton, function()
+        if(MAIN_UI.selectedZone > 1) then
+            MAIN_UI.selectedZone = MAIN_UI.selectedZone - 1
+            MAIN_UI.UpdateZone()
+        end
+    end)
+
+    DCEI.SetOnClickCallback(rightZoneButton, function()
+        if(MAIN_UI.selectedZone < GetTableSize(allZones)) then
+            MAIN_UI.selectedZone = MAIN_UI.selectedZone + 1
+            MAIN_UI.UpdateZone()
+        end
+    end)
 
     MAIN_UI.SetZonePanelActive = function(state) 
         DCEI.SetActive(zoneIndicator,state)
@@ -742,6 +811,11 @@ function CreateMainDialog()
     DCEI.SetOnClickCallback(button, function()
         OnEmbarkButtonClick()
     end)
+    
+    if(CanSetZoneAsActive(GetCurrentZone()) == false) then
+        --Zone data: {name , description, image, twist = ,map, requirementZone, flags}
+        DCEI.SetTooltipText(button, "You have not completed this region's requirements. [Requires "..(GetCurrentZone().requirementZone).."]")
+    end
 
     local highlight = DCEI.NewHighlight(button)
     --DCEI.SetMatchParent(highlight,true,true)
@@ -866,6 +940,11 @@ function CreateMainDialog()
         
     end
     
+end
+
+function SetActiveZone(newZone)
+
+
 end
 
 function CreateHeroesUI()
@@ -1253,10 +1332,34 @@ function OnEmbarkButtonClick()
         local encodedData = json.encode(dungeonData)
         DCEI.Save.Set("DungeonData",encodedData)
         DCEI.Save.Commit()
-        DCEI.PlayLevel(currentZone.map,"Shadow Forest")
+        DCEI.PlayLevel(currentZone.map,"Dungeon Run")
     end,function()
         
     end)
+end
+
+function CanSetZoneAsActive(newZone)
+    --Zone data: {name , description, image, twist = ,map, requirementZone, flags}
+    if(newZone.requirementZone == nil or newZone.requirementZone == "None" or IsZoneCompleted(newZone.requirementZone)) then
+        return true
+    end
+    return false
+end
+
+function IsZoneCompleted(zoneName)
+    local returnVal = false
+    foreach(allZones, function(zone)
+        if(zone.name == zoneName) then
+            if(GetCurrentDifficultyInZoneFromMode(zone, "Standard") >= 2 and zone.flags.isTutorial == true) then
+                --Gets the standard difficulty
+                returnVal = true
+            elseif (GetCurrentDifficultyInZoneFromMode(zone, "Boss") >= 2) then
+                returnVal = true
+            end
+        end
+    end)
+
+    return returnVal
 end
 
 function ShowErrorText(text)

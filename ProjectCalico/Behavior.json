@@ -862,6 +862,25 @@
                     "multiplierFactor": 2
                 }
             }
+        },
+        "Brutal Combat": {
+            "modifiers": {
+                "weaponDamageModifier": {
+                    "multiplierFactor": 0.3
+                },
+                "abilityDamageModifier": {
+                    "multiplierFactor": 0.3
+                }
+            }
+        },
+        "Flurry": {
+            "duration": 5,
+            "startEffect": "Flurry Impact Dummy",
+            "modifiers": {
+                "attackSpeedModifier": {
+                    "multiplierFactor": 1.5
+                }
+            }
         }
     }
 }

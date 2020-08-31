@@ -336,6 +336,178 @@
                 "target": 2
             }
         },
+        "Autocast_Heal": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Bless Heal",
+                "location": 1
+            }
+        },
+        "Autocast_HeavyArrow": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 9
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 1,
+                    "neutral": 2,
+                    "missile": 2,
+                    "air": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Heavy Arrow Launch Missile",
+                "location": 1,
+                "useSourceFacing": true
+            }
+        },
+        "Autocast_Ignite": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 8,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 4,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "ground": 1,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Ignite Spawn Unit",
+                "location": 1
+            }
+        },
+        "Autocast_Protect": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 3,
+                        "order": 1
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "missile": 2,
+                    "structure": 2,
+                    "alive": 1
+                },
+                "effect": "Protect Leap to Point",
+                "location": 3
+            }
+        },
+        "Autocast_Regrowth": {
+            "areaSearch": {
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 6
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 5
+                    },
+                    "secondarySortKeys": {
+                        "key": 4
+                    },
+                    "player": 0,
+                    "ally": 0,
+                    "enemy": 2,
+                    "neutral": 2,
+                    "unit": 1,
+                    "missile": 2,
+                    "structure": 2,
+                    "ground": 1,
+                    "stealth": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Regrowth Apply Behavior",
+                "location": 1
+            }
+        },
+        "Autocast_Scattershot": {
+            "areaSearch": {
+                "debugDraw": true,
+                "areaSearchType": {
+                    "circle": {
+                        "radius": 3.25
+                    }
+                },
+                "maxUnitCount": 1,
+                "filter": {
+                    "primarySortKeys": {
+                        "key": 8,
+                        "order": 1
+                    },
+                    "secondarySortKeys": {
+                        "key": 5,
+                        "order": 1
+                    },
+                    "enemy": 1,
+                    "missile": 2,
+                    "invulerable": 2,
+                    "alive": 1
+                },
+                "effect": "Scattershot Impact Set",
+                "location": 1
+            }
+        },
         "Berserker Mace Damage": {
             "damage": {
                 "damageAmount": 6
@@ -669,7 +841,7 @@
                         "radius": 0.75
                     }
                 },
-                "maxUnitCount": 1,
+                "maxUnitCount": 3,
                 "filter": {
                     "primarySortKeys": {
                         "key": 5
@@ -1008,7 +1180,6 @@
                         "radius": 1.15
                     }
                 },
-                "maxUnitCount": 5,
                 "filter": {
                     "primarySortKeys": {
                         "key": 5,
@@ -1021,7 +1192,7 @@
                     "invulerable": 2,
                     "alive": 1
                 },
-                "effect": "Apply Poison"
+                "effect": "Apply Poison x2"
             }
         },
         "Polymorph": {
@@ -1596,177 +1767,20 @@
                 "terminateOnPeriodicEffectSuccess": true
             }
         },
-        "Autocast_Ignite": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 6
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 8,
-                        "order": 1
-                    },
-                    "secondarySortKeys": {
-                        "key": 4,
-                        "order": 1
-                    },
-                    "enemy": 1,
-                    "missile": 2,
-                    "ground": 1,
-                    "invulerable": 2,
-                    "alive": 1
-                },
-                "effect": "Ignite Spawn Unit",
-                "location": 1
+        "Apply Poison x2": {
+            "applyBehavior": {
+                "behavior": "Poison",
+                "target": 1,
+                "stackCount": 2
             }
         },
-        "Autocast_Heal": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 6
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 5
-                    },
-                    "secondarySortKeys": {
-                        "key": 4
-                    },
-                    "player": 0,
-                    "ally": 0,
-                    "enemy": 2,
-                    "neutral": 2,
-                    "missile": 2,
-                    "structure": 2,
-                    "alive": 1
-                },
-                "effect": "Bless Heal",
-                "location": 1
+        "Apply Flurry": {
+            "applyBehavior": {
+                "behavior": "Flurry",
+                "target": 2,
+                "stackCount": 1
             }
         },
-        "Autocast_Regrowth": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 6
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 5
-                    },
-                    "secondarySortKeys": {
-                        "key": 4
-                    },
-                    "player": 0,
-                    "ally": 0,
-                    "enemy": 2,
-                    "neutral": 2,
-                    "unit": 1,
-                    "missile": 2,
-                    "structure": 2,
-                    "ground": 1,
-                    "stealth": 2,
-                    "invulerable": 2,
-                    "alive": 1
-                },
-                "effect": "Regrowth Apply Behavior",
-                "location": 1
-            }
-        },
-        "Autocast_HeavyArrow": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 9
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 3,
-                        "order": 1
-                    },
-                    "secondarySortKeys": {
-                        "key": 4,
-                        "order": 1
-                    },
-                    "player": 0,
-                    "ally": 0,
-                    "enemy": 1,
-                    "neutral": 2,
-                    "missile": 2,
-                    "air": 2,
-                    "ground": 1,
-                    "invulerable": 2,
-                    "alive": 1
-                },
-                "effect": "Heavy Arrow Launch Missile",
-                "location": 3,
-                "useSourceFacing": true
-            }
-        },
-        "Autocast_Protect": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 6
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 5
-                    },
-                    "secondarySortKeys": {
-                        "key": 3,
-                        "order": 1
-                    },
-                    "player": 0,
-                    "ally": 0,
-                    "enemy": 2,
-                    "neutral": 2,
-                    "missile": 2,
-                    "structure": 2,
-                    "alive": 1
-                },
-                "effect": "Protect Leap to Point",
-                "location": 3
-            }
-        },
-        "Autocast_Scattershot": {
-            "areaSearch": {
-                "areaSearchType": {
-                    "circle": {
-                        "radius": 2.3
-                    }
-                },
-                "maxUnitCount": 1,
-                "filter": {
-                    "primarySortKeys": {
-                        "key": 3,
-                        "order": 1
-                    },
-                    "secondarySortKeys": {
-                        "key": 4,
-                        "order": 1
-                    },
-                    "enemy": 1,
-                    "missile": 2,
-                    "ground": 1,
-                    "invulerable": 2,
-                    "alive": 1
-                },
-                "effect": "Scattershot Search",
-                "location": 3
-            }
-        }
+        "Flurry Impact Dummy": {}
     }
 }
